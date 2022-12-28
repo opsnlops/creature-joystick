@@ -41,12 +41,13 @@ void start_usb_tasks() {
 // Invoked when device is mounted
 void tud_mount_cb(void)
 {
+    debug("device mounted");
 }
 
 // Invoked when device is unmounted
 void tud_umount_cb(void)
 {
-
+    debug("device unmounted");
 }
 
 // Invoked when usb bus is suspended
@@ -55,13 +56,13 @@ void tud_umount_cb(void)
 void tud_suspend_cb(bool remote_wakeup_en)
 {
     (void) remote_wakeup_en;
-
+    debug("USB bus suspended");
 }
 
 // Invoked when usb bus is resumed
 void tud_resume_cb(void)
 {
-
+    debug("USB bus resumed");
 }
 
 
@@ -241,7 +242,7 @@ void usb_device_task(void *param) {
     // init device stack on configured roothub port
     // This should be called after scheduler/kernel is started.
     // Otherwise it could cause kernel issue since USB IRQ handler does use RTOS queue API.
-    //tud_init(BOARD_TUD_RHPORT);
+    tud_init(BOARD_TUD_RHPORT);
 
     // RTOS forever loop
     while (1) {

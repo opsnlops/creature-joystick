@@ -16,6 +16,7 @@ extern "C"
 #include "bsp/board.h"
 #include "tusb.h"
 
+#define BOARD_TUD_RHPORT     0
 
 #define HID_STACK_SIZE      configMINIMAL_STACK_SIZE
 #define USBD_STACK_SIZE     512
