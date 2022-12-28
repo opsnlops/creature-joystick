@@ -18,7 +18,8 @@ add_executable(joystick)
 target_sources(joystick PUBLIC
         ${CMAKE_CURRENT_LIST_DIR}/src/main.c
         ${CMAKE_CURRENT_LIST_DIR}/src/logging/logging.c
-        ${CMAKE_CURRENT_LIST_DIR}/src/usb_descriptors.c
+        ${CMAKE_CURRENT_LIST_DIR}/src/usb/usb.c
+        ${CMAKE_CURRENT_LIST_DIR}/src/usb/usb_descriptors.c
         )
 
 # Make sure TinyUSB can find tusb_config.h
@@ -37,3 +38,6 @@ target_link_libraries(joystick PUBLIC
 
 pico_add_extra_outputs(joystick)
 
+# Enable the console over UART (which is the picoprobe!)
+pico_enable_stdio_usb(joystick 0)
+pico_enable_stdio_uart(joystick 1)
