@@ -9,16 +9,17 @@ include($ENV{FREERTOS_KERNEL_PATH}/portable/ThirdParty/GCC/RP2040/FreeRTOS_Kerne
 project(joystick C CXX ASM)
 
 set(CMAKE_C_STANDARD 17)
+set(CMAKE_CXX_STANDARD 17)
 
 # Initialize the SDK
 pico_sdk_init()
 
 add_executable(joystick)
 
-add_subdirectory(pico-ssd1306)
-
 target_sources(joystick PUBLIC
         ${CMAKE_CURRENT_LIST_DIR}/src/main.c
+        ${CMAKE_CURRENT_LIST_DIR}/src/freertos_hook.c
+        ${CMAKE_CURRENT_LIST_DIR}/src/display/display.cpp
         ${CMAKE_CURRENT_LIST_DIR}/src/joystick/joystick.c
         ${CMAKE_CURRENT_LIST_DIR}/src/logging/logging.c
         ${CMAKE_CURRENT_LIST_DIR}/src/usb/usb.c
@@ -27,7 +28,10 @@ target_sources(joystick PUBLIC
 
 # Make sure TinyUSB can find tusb_config.h
 target_include_directories(joystick PUBLIC
+        .
         ${CMAKE_CURRENT_LIST_DIR}/src)
+
+add_subdirectory(pico-ssd1306)
 
 # In addition to pico_stdlib required for common PicoSDK functionality, add dependency on tinyusb_device
 # for TinyUSB device support and tinyusb_board for the additional board support library used by the example

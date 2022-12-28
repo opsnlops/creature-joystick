@@ -6,29 +6,31 @@
 
 
 
-TaskHandle_t usb_device_task_handle;
-TaskHandle_t hid_task_handle;
-
-
+StaticTask_t usb_device_task_handle;
+StaticTask_t hid_task_handle;
+StackType_t usb_device_stack[USBD_STACK_SIZE];
+StackType_t hid_stack[HID_STACK_SIZE];
 
 void start_usb_tasks() {
 
     debug("starting up USB tasks");
 
     // Create a task for tinyusb device stack
-    xTaskCreate(usb_device_task,
+    xTaskCreateStatic(usb_device_task,
                 "usbd",
                 USBD_STACK_SIZE,
                 NULL,
                 configMAX_PRIORITIES - 1,
+                      usb_device_stack,
                 &usb_device_task_handle);
 
     // Create HID task
-    xTaskCreate(hid_task,
+    xTaskCreateStatic(hid_task,
                 "hid",
                 HID_STACK_SIZE,
                 NULL,
                 configMAX_PRIORITIES - 2,
+                      hid_stack,
                 &hid_task_handle);
 
 }
@@ -77,58 +79,10 @@ static void send_hid_report(uint8_t report_id, uint32_t btn)
     // skip if hid is not ready yet
     if ( !tud_hid_ready() ) return;
 
+    debug("send report");
+
     switch(report_id)
     {
-        case REPORT_ID_KEYBOARD:
-        {
-            // use to avoid send multiple consecutive zero report for keyboard
-            static bool has_keyboard_key = false;
-
-            if ( btn )
-            {
-                uint8_t keycode[6] = { 0 };
-                keycode[0] = HID_KEY_A;
-
-                tud_hid_keyboard_report(REPORT_ID_KEYBOARD, 0, keycode);
-                has_keyboard_key = true;
-            }else
-            {
-                // send empty key report if previously has key pressed
-                if (has_keyboard_key) tud_hid_keyboard_report(REPORT_ID_KEYBOARD, 0, NULL);
-                has_keyboard_key = false;
-            }
-        }
-            break;
-
-        case REPORT_ID_MOUSE:
-        {
-            int8_t const delta = 5;
-
-            // no button, right + down, no scroll, no pan
-            tud_hid_mouse_report(REPORT_ID_MOUSE, 0x00, delta, delta, 0, 0);
-        }
-            break;
-
-        case REPORT_ID_CONSUMER_CONTROL:
-        {
-            // use to avoid send multiple consecutive zero report
-            static bool has_consumer_key = false;
-
-            if ( btn )
-            {
-                // volume down
-                uint16_t volume_down = HID_USAGE_CONSUMER_VOLUME_DECREMENT;
-                tud_hid_report(REPORT_ID_CONSUMER_CONTROL, &volume_down, 2);
-                has_consumer_key = true;
-            }else
-            {
-                // send empty key report (release key) if previously has key pressed
-                uint16_t empty_key = 0;
-                if (has_consumer_key) tud_hid_report(REPORT_ID_CONSUMER_CONTROL, &empty_key, 2);
-                has_consumer_key = false;
-            }
-        }
-            break;
 
         case REPORT_ID_GAMEPAD:
         {
@@ -174,7 +128,7 @@ void tud_hid_report_complete_cb(uint8_t instance, uint8_t const* report, uint8_t
 
     if (next_report_id < REPORT_ID_COUNT)
     {
-        send_hid_report(next_report_id, board_button_read());
+       // send_hid_report(next_report_id, board_button_read());
     }
 }
 
@@ -199,13 +153,11 @@ void tud_hid_set_report_cb(uint8_t instance, uint8_t report_id, hid_report_type_
 {
     (void) instance;
 
+    debug("report: %d", report_type);
+
     if (report_type == HID_REPORT_TYPE_OUTPUT)
     {
-        // Set keyboard LED e.g Capslock, Numlock etc...
-        if (report_id == REPORT_ID_KEYBOARD)
-        {
-            // This isn't a keyboard
-        }
+
     }
 }
 
@@ -213,21 +165,18 @@ void tud_hid_set_report_cb(uint8_t instance, uint8_t report_id, hid_report_type_
 void hid_task(void *param) {
     (void) param;
 
-    while (1) {
+    for (EVER) {
         // Poll every 10ms
         vTaskDelay(pdMS_TO_TICKS(10));
 
-        uint32_t const btn = board_button_read();
-
         // Remote wakeup
-        if (tud_suspended() && btn) {
+        if (tud_suspended()) {
             // Wake up host if we are in suspend mode
             // and REMOTE_WAKEUP feature is enabled by host
             tud_remote_wakeup();
-        } else {
-            // Send the 1st of report chain, the rest will be sent by tud_hid_report_complete_cb()
-            send_hid_report(REPORT_ID_KEYBOARD, btn);
         }
+
+
     }
 }
 
@@ -248,7 +197,5 @@ void usb_device_task(void *param) {
     while (1) {
         // put this thread to waiting state until there is new events
         tud_task();
-
-        // following code only run if tud_task() process at least 1 event
     }
 }
