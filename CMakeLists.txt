@@ -15,8 +15,11 @@ pico_sdk_init()
 
 add_executable(joystick)
 
+add_subdirectory(pico-ssd1306)
+
 target_sources(joystick PUBLIC
         ${CMAKE_CURRENT_LIST_DIR}/src/main.c
+        ${CMAKE_CURRENT_LIST_DIR}/src/joystick/joystick.c
         ${CMAKE_CURRENT_LIST_DIR}/src/logging/logging.c
         ${CMAKE_CURRENT_LIST_DIR}/src/usb/usb.c
         ${CMAKE_CURRENT_LIST_DIR}/src/usb/usb_descriptors.c
@@ -32,8 +35,10 @@ target_link_libraries(joystick PUBLIC
         FreeRTOS-Kernel
         FreeRTOS-Kernel-Heap4
         pico_stdlib
+        hardware_adc
         tinyusb_device
         tinyusb_board
+        pico_ssd1306
         )
 
 pico_add_extra_outputs(joystick)
