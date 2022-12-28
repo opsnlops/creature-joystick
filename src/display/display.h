@@ -13,30 +13,23 @@
 using namespace pico_ssd1306;
 
 /**
- * Debugging OLED Display
+ * This project is in C, because tinyUSB is in C. (And I just wanted to
+ * write C.)
  *
- * Everything in this is static because it's updated via a task. I'm
- * using classes here mostly to keep the namespace clean.
+ * This is mostly a wrapper to get into the C++ code from C.
  */
 class Display {
 
 public:
-    Display(Controller* controller, IOHandler* io);
+    Display();
 
     void init();
     void start();
 
-    Controller* getController();
-    IOHandler* getIOHandler();
-    SSD1306* getOLED();
+    static SSD1306* oled;
 
     void createOLEDDisplay();
 
-private:
-    SSD1306* oled;
-    Controller* controller;
-    IOHandler* io;
-
 };
 
-
+portTASK_FUNCTION_PROTO(displayUpdateTask, pvParameters);

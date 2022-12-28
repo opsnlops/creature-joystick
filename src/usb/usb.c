@@ -4,7 +4,10 @@
 #include "usb_descriptors.h"
 #include "usb/usb.h"
 
-
+static uint32_t reports_sent = 0;
+static bool usb_bus_active = false;
+static bool device_mounted = false;
+static uint32_t events_processed = 0;
 
 StaticTask_t usb_device_task_handle;
 StaticTask_t hid_task_handle;
@@ -44,12 +47,14 @@ void start_usb_tasks() {
 void tud_mount_cb(void)
 {
     debug("device mounted");
+    device_mounted = true;
 }
 
 // Invoked when device is unmounted
 void tud_umount_cb(void)
 {
     debug("device unmounted");
+    device_mounted = false;
 }
 
 // Invoked when usb bus is suspended
@@ -59,12 +64,15 @@ void tud_suspend_cb(bool remote_wakeup_en)
 {
     (void) remote_wakeup_en;
     debug("USB bus suspended");
+
+    usb_bus_active = false;
 }
 
 // Invoked when usb bus is resumed
 void tud_resume_cb(void)
 {
     debug("USB bus resumed");
+    usb_bus_active = true;
 }
 
 
@@ -109,11 +117,16 @@ static void send_hid_report(uint8_t report_id, uint32_t btn)
                 if (has_gamepad_key) tud_hid_report(REPORT_ID_GAMEPAD, &report, sizeof(report));
                 has_gamepad_key = false;
             }
-        }
-            break;
 
-        default: break;
+            break;
+        }
+
+
+        default:
+            break;
     }
+
+    reports_sent++;
 }
 
 // Invoked when sent REPORT successfully to host
@@ -176,6 +189,7 @@ void hid_task(void *param) {
             tud_remote_wakeup();
         }
 
+        events_processed++;
 
     }
 }
