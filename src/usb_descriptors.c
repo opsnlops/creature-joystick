@@ -36,8 +36,8 @@
 #define USB_PID           (0x4000 | _PID_MAP(CDC, 0) | _PID_MAP(MSC, 1) | _PID_MAP(HID, 2) | \
                            _PID_MAP(MIDI, 3) | _PID_MAP(VENDOR, 4) )
 
-#define USB_VID   0xCafe
-#define USB_BCD   0x0200
+#define USB_VID   0x6040
+#define USB_BCD   0x0666
 
 //--------------------------------------------------------------------+
 // Device Descriptors
@@ -182,8 +182,8 @@ char const* string_desc_arr [] =
         {
                 (const char[]) { 0x09, 0x04 }, // 0: is supported language is English (0x0409)
                 "Ops 'n Lops",                     // 1: Manufacturer
-                "BIG FART MACHINE",              // 2: Product
-                "666",                      // 3: Serials, should use chip ID
+                "Creature Joystick",              // 2: Product
+                "H0PH0PH0P",                      // 3: Serials, should use chip ID
         };
 
 static uint16_t _desc_str[32];

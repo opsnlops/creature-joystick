@@ -17,6 +17,7 @@ add_executable(joystick)
 
 target_sources(joystick PUBLIC
         ${CMAKE_CURRENT_LIST_DIR}/src/main.c
+        ${CMAKE_CURRENT_LIST_DIR}/src/logging/logging.c
         ${CMAKE_CURRENT_LIST_DIR}/src/usb_descriptors.c
         )
 

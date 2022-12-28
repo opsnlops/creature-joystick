@@ -1,9 +1,12 @@
 #include <stdlib.h>
 #include <stdio.h>
-#include <string.h>
 
 #include <FreeRTOS.h>
 #include <task.h>
+
+#include "pico/stdlib.h"
+
+#include "logging/logging.h"
 
 #include "bsp/board.h"
 #include "tusb.h"
@@ -31,6 +34,10 @@ static void send_hid_report(uint8_t report_id, uint32_t btn);
 
 int main(void)
 {
+    // All the SDK to bring up the stdio stuff, so we can write to the serial port
+    stdio_init_all();
+
+    logger_init();
     board_init();
 
     // Create a task for tinyusb device stack
@@ -49,6 +56,7 @@ int main(void)
                 configMAX_PRIORITIES - 2,
                 &hid_task_handle);
 
+    debug("starting task scheduler!");
     vTaskStartScheduler();
 
 }
