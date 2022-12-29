@@ -14,6 +14,7 @@
 // Use the namespace for convenience
 using namespace pico_ssd1306;
 
+
 /**
  * This project is in C, because tinyUSB is in C. (And I just wanted to
  * write C.)
@@ -30,7 +31,8 @@ public:
 
     void clear();
     void setOrientation(bool orientation);
-    void drawText(const char *text, uint8_t anchor_x, uint8_t anchor_y);
+    void drawTextSmall(const char *text, uint8_t anchor_x, uint8_t anchor_y);
+    void drawTextMedium(const char *text, uint8_t anchor_x, uint8_t anchor_y);
     void sendBuffer();
 
 private:

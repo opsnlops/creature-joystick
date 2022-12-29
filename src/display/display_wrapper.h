@@ -10,9 +10,12 @@
 #include <stdint.h> // NOLINT(modernize-deprecated-headers)
 #include <unistd.h>
 
+
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+#include "joystick/joystick.h"
 
 struct display;
 typedef struct display display_t;
@@ -24,7 +27,8 @@ void display_init(display_t *d);
 [[maybe_unused]] void display_start(display_t *d);
 void display_set_orientation(display_t *d, bool orientation);
 void display_clear(display_t *d);
-void display_draw_text(display_t *d, const char *text, uint8_t anchor_x, uint8_t anchor_y);
+void display_draw_text_small(display_t *d, const char *text, uint8_t anchor_x, uint8_t anchor_y);
+void display_draw_text_medium(display_t *d, const char *text, uint8_t anchor_x, uint8_t anchor_y);
 void display_send_buffer(display_t *d);
 
 #ifdef __cplusplus

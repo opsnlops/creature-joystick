@@ -68,7 +68,7 @@ void display_set_orientation(display_t *d, bool orientation) {
     obj->setOrientation(orientation);
 }
 
-void display_draw_text(display_t *d, const char *text, uint8_t anchor_x, uint8_t anchor_y) {
+void display_draw_text_small(display_t *d, const char *text, uint8_t anchor_x, uint8_t anchor_y) {
 
     Display *obj;
 
@@ -76,7 +76,18 @@ void display_draw_text(display_t *d, const char *text, uint8_t anchor_x, uint8_t
         return;
 
     obj = static_cast<Display *>(d->obj);
-    obj->drawText(text, anchor_x, anchor_y);
+    obj->drawTextSmall(text, anchor_x, anchor_y);
+}
+
+void display_draw_text_medium(display_t *d, const char *text, uint8_t anchor_x, uint8_t anchor_y) {
+
+    Display *obj;
+
+    if (d == nullptr)
+        return;
+
+    obj = static_cast<Display *>(d->obj);
+    obj->drawTextMedium(text, anchor_x, anchor_y);
 }
 
 void display_send_buffer(display_t *d) {

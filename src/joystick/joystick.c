@@ -78,9 +78,9 @@ portTASK_FUNCTION(joystick_reader_task, pvParameters) {
         read_value(&j->x);
         read_value(&j->y);
 
-        info("Reading: x: %d, y: %d", j->x, j->y);
+        verbose("Reading: x: %d, y: %d", j->x.value, j->y.value);
 
-        vTaskDelay(pdMS_TO_TICKS(500));
+        vTaskDelay(pdMS_TO_TICKS(25));
 
     }
 

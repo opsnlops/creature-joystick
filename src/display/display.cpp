@@ -73,6 +73,11 @@ void Display::sendBuffer() {
     oled->sendBuffer();
 }
 
-void Display::drawText(const char *text, uint8_t anchor_x, uint8_t anchor_y) {
+// TODO: There's gotta be a better way to do this
+void Display::drawTextSmall(const char *text, uint8_t anchor_x, uint8_t anchor_y) {
     pico_ssd1306::drawText(oled, font_5x8, text, anchor_x, anchor_y);
+}
+
+void Display::drawTextMedium(const char *text, uint8_t anchor_x, uint8_t anchor_y) {
+    pico_ssd1306::drawText(oled, font_8x8, text, anchor_x, anchor_y);
 }

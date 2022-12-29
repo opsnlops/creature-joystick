@@ -6,7 +6,7 @@
 #include <string.h>
 #include <stdio.h>
 
-
+#include "joystick/joystick.h"
 #include "logging/logging.h"
 
 #include "display_wrapper.h"
@@ -23,6 +23,7 @@ extern uint32_t reports_sent;
 extern bool usb_bus_active;
 extern bool device_mounted;
 extern uint32_t events_processed;
+extern joystick joystick1;
 
 
 void display_start_task_running(display_t *d) {
@@ -82,12 +83,14 @@ portTASK_FUNCTION(display_update_task, pvParameters) {
     sprintf(buffer[3], "Mounted: %s   Bus: %s",
                             device_mounted ? "Yes" : "No",
                             usb_bus_active ? "Yes" : "No");
+    sprintf(buffer[4], "X: %-4d  Y: %-4d", joystick1.x.value, joystick1.y.value);
 
 
-    display_draw_text(d, buffer[0], 0, 0);
-    display_draw_text(d, buffer[1], 0, 7);
-    display_draw_text(d, buffer[2], 0, 14);
-    display_draw_text(d, buffer[3], 0, 21);
+    display_draw_text_small(d, buffer[0], 0, 0);
+    display_draw_text_small(d, buffer[1], 0, 7);
+    display_draw_text_small(d, buffer[2], 0, 14);
+    display_draw_text_small(d, buffer[3], 0, 21);
+    display_draw_text_medium(d, buffer[4], 0, 42);
 
     display_send_buffer(d);
 

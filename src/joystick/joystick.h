@@ -28,6 +28,7 @@ typedef struct {
 } joystick;
 
 
+joystick create_joystick(uint8_t x_gpio_pin, uint8_t y_gpio_pin);
 TaskHandle_t start_joystick(joystick* j);
 
 #ifdef __cplusplus
