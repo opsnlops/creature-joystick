@@ -19,10 +19,10 @@ TaskHandle_t display_update_task_handle;
 
 
 // Grab these out of the global scope
-static uint32_t reports_sent;
-static bool usb_bus_active;
-static bool device_mounted;
-static uint32_t events_processed;
+extern uint32_t reports_sent;
+extern bool usb_bus_active;
+extern bool device_mounted;
+extern uint32_t events_processed;
 
 
 void display_start_task_running(display_t *d) {

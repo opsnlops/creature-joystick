@@ -4,10 +4,10 @@
 #include "usb_descriptors.h"
 #include "usb/usb.h"
 
-static uint32_t reports_sent = 0;
-static bool usb_bus_active = false;
-static bool device_mounted = false;
-static uint32_t events_processed = 0;
+uint32_t reports_sent = 0;
+bool usb_bus_active = false;
+bool device_mounted = false;
+uint32_t events_processed = 0;
 
 StaticTask_t usb_device_task_handle;
 StaticTask_t hid_task_handle;
@@ -24,7 +24,7 @@ void start_usb_tasks() {
                 USBD_STACK_SIZE,
                 NULL,
                 configMAX_PRIORITIES - 1,
-                      usb_device_stack,
+                usb_device_stack,
                 &usb_device_task_handle);
 
     // Create HID task
@@ -33,7 +33,7 @@ void start_usb_tasks() {
                 HID_STACK_SIZE,
                 NULL,
                 configMAX_PRIORITIES - 2,
-                      hid_stack,
+                hid_stack,
                 &hid_task_handle);
 
 }
@@ -48,6 +48,7 @@ void tud_mount_cb(void)
 {
     debug("device mounted");
     device_mounted = true;
+    usb_bus_active = true;
 }
 
 // Invoked when device is unmounted
@@ -65,6 +66,7 @@ void tud_suspend_cb(bool remote_wakeup_en)
     (void) remote_wakeup_en;
     debug("USB bus suspended");
 
+    device_mounted = false;
     usb_bus_active = false;
 }
 
