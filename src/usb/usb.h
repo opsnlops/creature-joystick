@@ -28,7 +28,7 @@ portTASK_FUNCTION_PROTO(hid_task, pvParameters);
 void start_usb_tasks();
 
 
-static void send_hid_report(uint8_t report_id, uint32_t btn);
+static void send_hid_report();
 
 #ifdef __cplusplus
 }

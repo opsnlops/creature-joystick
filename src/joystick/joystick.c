@@ -1,12 +1,17 @@
 
 
+#include <limits.h>
 #include <stdio.h>
+
 
 #include "hardware/adc.h"
 #include "joystick.h"
 
 #include "logging/logging.h"
 
+// TODO: This should be tunable
+#define ADC_MIN 1500
+#define ADC_MAX 2560
 
 /**
  * @brief Reads a value on an axis from the hardware
@@ -16,7 +21,22 @@
 void read_value(axis* a) {
 
     adc_select_input(a->gpio_pin - 26);
-    a->value = adc_read();
+
+    uint16_t read_value = adc_read();
+
+    if(read_value > ADC_MAX) {
+        warning("clipping joystick reading at %d (was %d)", ADC_MAX, read_value);
+        read_value = ADC_MAX;
+    }
+
+    if(read_value < ADC_MIN) {
+        warning("clipping joystick reading at %d (was %d)", ADC_MIN, read_value);
+        read_value = ADC_MIN;
+    }
+
+    // Convert this to an 8-bit value
+    float percent = (float)(read_value - ADC_MIN) / (float)(ADC_MAX - ADC_MIN);
+    a->value = (int8_t)((UCHAR_MAX * percent) + SCHAR_MIN);
 
     verbose("read value %d from gpio %d", a->value, a->gpio_pin);
 }

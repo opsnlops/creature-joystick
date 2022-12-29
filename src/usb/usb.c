@@ -1,5 +1,7 @@
 
+#include <limits.h>
 
+#include "joystick/joystick.h"
 #include "logging/logging.h"
 #include "usb_descriptors.h"
 #include "usb/usb.h"
@@ -8,6 +10,7 @@ uint32_t reports_sent = 0;
 bool usb_bus_active = false;
 bool device_mounted = false;
 uint32_t events_processed = 0;
+extern joystick joystick1;
 
 StaticTask_t usb_device_task_handle;
 StaticTask_t hid_task_handle;
@@ -84,49 +87,33 @@ void tud_resume_cb(void)
 // USB HID
 //--------------------------------------------------------------------+
 
-static void send_hid_report(uint8_t report_id, uint32_t btn)
+static void send_hid_report()
 {
     // skip if hid is not ready yet
     if ( !tud_hid_ready() ) return;
 
-    debug("send report");
+    //debug("send report");
 
-    switch(report_id)
-    {
 
-        case REPORT_ID_GAMEPAD:
-        {
-            // use to avoid send multiple consecutive zero report for keyboard
-            static bool has_gamepad_key = false;
 
             hid_gamepad_report_t report =
                     {
-                            .x   = 0, .y = 0, .z = 0, .rz = 0, .rx = 0, .ry = 0,
-                            .hat = 0, .buttons = 0
+                            .x = joystick1.x.value,
+                            .y = joystick1.y.value,
+                            .z = 0,
+                            .rz = 0,
+                            .rx = 0,
+                            .ry = 0,
+                            .hat = 0,
+                            .buttons = 0
                     };
 
-            if ( btn )
+            if (tud_hid_ready())
             {
-                report.hat = GAMEPAD_HAT_UP;
-                report.buttons = GAMEPAD_BUTTON_A;
-                tud_hid_report(REPORT_ID_GAMEPAD, &report, sizeof(report));
-
-                has_gamepad_key = true;
-            }else
-            {
-                report.hat = GAMEPAD_HAT_CENTERED;
-                report.buttons = 0;
-                if (has_gamepad_key) tud_hid_report(REPORT_ID_GAMEPAD, &report, sizeof(report));
-                has_gamepad_key = false;
+                tud_hid_n_report(0x00, 0x01, &report, sizeof(report));
             }
 
-            break;
-        }
 
-
-        default:
-            break;
-    }
 
     reports_sent++;
 }
@@ -190,6 +177,8 @@ void hid_task(void *param) {
             // and REMOTE_WAKEUP feature is enabled by host
             tud_remote_wakeup();
         }
+
+        send_hid_report();
 
         events_processed++;
 

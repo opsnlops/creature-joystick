@@ -19,7 +19,7 @@ portTASK_FUNCTION_PROTO(joystick_reader_task, pvParameters);
 
 typedef struct {
     uint8_t gpio_pin;
-    uint16_t value;
+    int8_t value;
 } axis;
 
 typedef struct {
