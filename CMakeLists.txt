@@ -20,7 +20,8 @@ target_sources(joystick PUBLIC
         ${CMAKE_CURRENT_LIST_DIR}/src/main.c
         ${CMAKE_CURRENT_LIST_DIR}/src/freertos_hook.c
         ${CMAKE_CURRENT_LIST_DIR}/src/display/display.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/src/display/display_wrapper.c
+        ${CMAKE_CURRENT_LIST_DIR}/src/display/display_task.c
+        ${CMAKE_CURRENT_LIST_DIR}/src/display/display_wrapper.cpp
         ${CMAKE_CURRENT_LIST_DIR}/src/joystick/joystick.c
         ${CMAKE_CURRENT_LIST_DIR}/src/logging/logging.c
         ${CMAKE_CURRENT_LIST_DIR}/src/usb/usb.c

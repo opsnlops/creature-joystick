@@ -15,24 +15,13 @@
 #include "display.h"
 #include "logging/logging.h"
 
-extern "C" {
 
-    // Grab these out of the global scope
-static uint32_t reports_sent;
-static bool usb_bus_active;
-static bool device_mounted;
-static uint32_t events_processed;
-}
-
-
-
-// Located in tasks.cpp
-TaskHandle_t displayUpdateTaskHandle;
 
 Display::Display() {
 
-    debug("starting up the display");
+    debug("setting up the display");
 
+    // This will get assigned when init() gets called
     this->oled = nullptr;
 
     debug("setting up the display's i2c");
@@ -50,79 +39,40 @@ Display::Display() {
 
 }
 
+/**
+ * @brief Initialize the display
+ *
+ * This isn't in the constructor because the display needs a bit of time to power up after
+ * the I2C bus is set up. It's called from the task that runs the display, and has a 250ms
+ * pause built in. We can't call sleep() in the main thread, FreeRTOS will panic if we do.
+ *
+ * Moving it to the task is a bit weird, but it's just what you've gotta do when working
+ * with actual hardware.
+ *
+ */
 void Display::init() {
-    // NOOP
+    debug("creating the oled display...");
+    oled = new SSD1306(DISPLAY_I2C_CONTROLLER, DISPLAY_I2C_DEVICE_ADDRESS, Size::W128xH64);
 }
 
 void Display::start()
 {
-    debug("starting display");
-    xTaskCreate(displayUpdateTask,
-                "displayUpdateTask",
-                1024,
-                (void*)this,         // Pass in a reference to ourselves
-                0,                      // Low priority
-                &displayUpdateTaskHandle);
+    // NOOP
 }
 
-
-void Display::createOLEDDisplay() {
-    oled = new SSD1306(DISPLAY_I2C_CONTROLLER, DISPLAY_I2C_DEVICE_ADDRESS, Size::W128xH64);
+void Display::setOrientation(bool orientation) {
+    debug("set display to orientation %d", orientation);
+    oled->setOrientation(orientation);
 }
 
-// Read from the queue and print it to the screen for now
-portTASK_FUNCTION(displayUpdateTask, pvParameters) {
+void Display::clear() {
+    oled->clear();
+}
 
-    auto display = (Display*)pvParameters;
+void Display::sendBuffer() {
+    oled->sendBuffer();
+}
 
-    /**
-     * So this is a bit weird. The display needs some time to settle after the I2C bus
-     * is set up. If the main task (before the scheduler is started) is delayed, FreeRTOS
-     * throws an assert and halts.
-     *
-     * Since it does that, let's start it here, once we're in a task. It's safe to bake in
-     * a delay at this point.
-     */
-    vTaskDelay(pdMS_TO_TICKS(250));
-    display->createOLEDDisplay();
-
-    Display::oled->setOrientation(false);  // False means horizontally
-
-    // Allocate one buffer_line_one for the display
-    char buffer[DISPLAY_NUMBER_OF_LINES][DISPLAY_BUFFER_SIZE + 1];
-
-    for(auto & i : buffer)
-        memset(i, '\0', DISPLAY_BUFFER_SIZE + 1);
-
-
-#pragma clang diagnostic push
-#pragma ide diagnostic ignored "EndlessLoop"
-    for (EVER) {
-
-        // Clear the display
-        Display::oled->clear();
-
-        // Null out the buffers
-        for(auto & i : buffer)
-            memset(i, '\0', DISPLAY_BUFFER_SIZE + 1);
-
-
-        sprintf(buffer[0], "Reports: %-5lu", reports_sent);
-        sprintf(buffer[1], " Events: %-5lu",  events_processed);
-        sprintf(buffer[2], "    Mem: %d", xPortGetFreeHeapSize());
-        sprintf(buffer[3], "Mounted: %s   Bus: %s",
-                device_mounted ? "Yes" : "No",
-                usb_bus_active ? "Yes" : "No");
-
-
-        drawText(Display::oled, font_5x8, buffer[0], 0, 0);
-        drawText(Display::oled, font_5x8, buffer[1], 0, 7);
-        drawText(Display::oled, font_5x8, buffer[2], 0, 14);
-        drawText(Display::oled, font_5x8, buffer[3], 0, 21);
-
-        Display::oled->sendBuffer();
-
-        vTaskDelay(pdMS_TO_TICKS(DISPLAY_UPDATE_TIME_MS));
-    }
-#pragma clang diagnostic pop
+void Display::drawText(const char *text, uint8_t anchor_x, uint8_t anchor_y) {
+    pico_ssd1306::drawText(oled, font_5x8, text, anchor_x, anchor_y);
 }

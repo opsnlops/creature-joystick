@@ -15,8 +15,9 @@
 #include "pico/stdlib.h"
 
 // Our stuff
+#include "display/display_task.h"
+#include "display/display_wrapper.h"
 #include "logging/logging.h"
-#include "usb/usb_descriptors.h"
 #include "usb/usb.h"
 
 
@@ -30,6 +31,10 @@ int main(void)
     board_init();
 
     start_usb_tasks();
+
+    // Set up the display
+    display_t *d = display_create();
+    display_start_task_running(d);
 
     debug("starting task scheduler!");
     vTaskStartScheduler();

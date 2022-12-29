@@ -1,9 +1,11 @@
 
-#pragma once
+#ifndef DISPLAY_H_
+#define DISPLAY_H_
 
 #include "hardware/i2c.h"
 
 #include "pico-ssd1306/ssd1306.h"
+#include "pico-ssd1306/textRenderer/TextRenderer.h"
 
 #define DISPLAY_I2C_BAUD_RATE 1000000
 #define DISPLAY_I2C_CONTROLLER i2c0
@@ -26,10 +28,13 @@ public:
     void init();
     void start();
 
-    static SSD1306* oled;
+    void clear();
+    void setOrientation(bool orientation);
+    void drawText(const char *text, uint8_t anchor_x, uint8_t anchor_y);
+    void sendBuffer();
 
-    void createOLEDDisplay();
-
+private:
+    SSD1306* oled;
 };
 
-portTASK_FUNCTION_PROTO(displayUpdateTask, pvParameters);
+#endif /* DISPLAY_H_ */
