@@ -24,6 +24,7 @@ extern bool usb_bus_active;
 extern bool device_mounted;
 extern uint32_t events_processed;
 extern joystick joystick1;
+extern TaskHandle_t joystick1_task_handler;
 
 
 void display_start_task_running(display_t *d) {
@@ -64,6 +65,8 @@ portTASK_FUNCTION(display_update_task, pvParameters) {
     for(int i = 0; i < DISPLAY_NUMBER_OF_LINES; i++)
         memset(buffer[i], '\0', DISPLAY_BUFFER_SIZE + 1);
 
+    // Used in the loop to show the task state
+    char* taskState;
 
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "EndlessLoop"
@@ -85,12 +88,38 @@ portTASK_FUNCTION(display_update_task, pvParameters) {
                             usb_bus_active ? "Yes" : "No");
     sprintf(buffer[4], "X: %-4d  Y: %-4d", joystick1.x.value, joystick1.y.value);
 
+    switch(eTaskGetState(joystick1_task_handler)) {
+
+        case(eSuspended):
+            taskState = "Suspended";
+            break;
+
+        // The spends most of its life in blocked while running
+        case(eBlocked):
+        case(eRunning):
+            taskState = "Running";
+            break;
+
+        case(eDeleted):
+            taskState = "Deleted";
+            break;
+        case(eInvalid):
+            taskState = "Invalid";
+            break;
+        case(eReady):
+            taskState = "Ready";
+            break;
+    }
+
+    sprintf(buffer[5], "%25s", taskState);
+
 
     display_draw_text_small(d, buffer[0], 0, 0);
     display_draw_text_small(d, buffer[1], 0, 7);
     display_draw_text_small(d, buffer[2], 0, 14);
     display_draw_text_small(d, buffer[3], 0, 21);
-    display_draw_text_medium(d, buffer[4], 0, 42);
+    display_draw_text_medium(d, buffer[4], 0, 40);
+    display_draw_text_small(d, buffer[5], 0, 56);
 
     display_send_buffer(d);
 

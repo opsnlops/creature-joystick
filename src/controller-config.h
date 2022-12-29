@@ -16,8 +16,8 @@
 
 // Update every 33ms (roughly 30Hz)
 #define DISPLAY_UPDATE_TIME_MS      33
-#define DISPLAY_BUFFER_SIZE         64
-#define DISPLAY_NUMBER_OF_LINES     5
+#define DISPLAY_BUFFER_SIZE         26
+#define DISPLAY_NUMBER_OF_LINES     6
 
 
 /*

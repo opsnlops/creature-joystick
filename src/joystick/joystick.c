@@ -83,6 +83,10 @@ TaskHandle_t start_joystick(joystick* j)
                 1,
                 &reader_handle);
 
+    // Start off suspended! Will be started when the device is
+    // mounted on the host
+    vTaskSuspend(reader_handle);
+
     return reader_handle;
 }
 
@@ -100,7 +104,7 @@ portTASK_FUNCTION(joystick_reader_task, pvParameters) {
 
         verbose("Reading: x: %d, y: %d", j->x.value, j->y.value);
 
-        vTaskDelay(pdMS_TO_TICKS(25));
+        vTaskDelay(pdMS_TO_TICKS(10));
 
     }
 

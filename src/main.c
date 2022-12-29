@@ -23,6 +23,7 @@
 #include "usb/usb.h"
 
 joystick joystick1;
+TaskHandle_t joystick1_task_handler;
 
 int main(void)
 {
@@ -40,8 +41,7 @@ int main(void)
 
     adc_init();
     joystick1 = create_joystick(26,27);
-    start_joystick(&joystick1);
-
+    joystick1_task_handler = start_joystick(&joystick1);
 
     debug("starting task scheduler!");
     vTaskStartScheduler();

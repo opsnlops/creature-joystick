@@ -1,6 +1,9 @@
 
 #include <limits.h>
 
+#include <FreeRTOS.h>
+#include <task.h>
+
 #include "joystick/joystick.h"
 #include "logging/logging.h"
 #include "usb_descriptors.h"
@@ -11,6 +14,7 @@ bool usb_bus_active = false;
 bool device_mounted = false;
 uint32_t events_processed = 0;
 extern joystick joystick1;
+extern TaskHandle_t joystick1_task_handler;
 
 StaticTask_t usb_device_task_handle;
 StaticTask_t hid_task_handle;
@@ -90,30 +94,39 @@ void tud_resume_cb(void)
 static void send_hid_report()
 {
     // skip if hid is not ready yet
-    if ( !tud_hid_ready() ) return;
+    if ( !tud_hid_ready() ) {
 
-    //debug("send report");
+        // Before we go, if the reader is running, stop it.
+        if( eTaskGetState(joystick1_task_handler) != eSuspended ) {
+            debug("suspending reader task");
+            vTaskSuspend(joystick1_task_handler);
+        }
 
+        return;
+    }
 
+    // Make sure the reader is running
+    if(eTaskGetState(joystick1_task_handler) == eSuspended ) {
+        debug("resuming joystick reader");
+        vTaskResume(joystick1_task_handler);
+    }
 
-            hid_gamepad_report_t report =
-                    {
-                            .x = joystick1.x.value,
-                            .y = joystick1.y.value,
-                            .z = 0,
-                            .rz = 0,
-                            .rx = 0,
-                            .ry = 0,
-                            .hat = 0,
-                            .buttons = 0
-                    };
+    hid_gamepad_report_t report =
+    {
+            .x = joystick1.x.value,
+            .y = joystick1.y.value,
+            .z = 0,
+            .rz = 0,
+            .rx = 0,
+            .ry = 0,
+            .hat = 0,
+            .buttons = 0
+    };
 
-            if (tud_hid_ready())
-            {
-                tud_hid_n_report(0x00, 0x01, &report, sizeof(report));
-            }
-
-
+    if (tud_hid_ready())
+    {
+        tud_hid_n_report(0x00, 0x01, &report, sizeof(report));
+    }
 
     reports_sent++;
 }
