@@ -13,8 +13,12 @@ uint32_t reports_sent = 0;
 bool usb_bus_active = false;
 bool device_mounted = false;
 uint32_t events_processed = 0;
+
 extern joystick joystick1;
 extern TaskHandle_t joystick1_task_handler;
+
+extern pot pot1;
+extern TaskHandle_t pot1_task_handler;
 
 StaticTask_t usb_device_task_handle;
 StaticTask_t hid_task_handle;
@@ -100,6 +104,7 @@ static void send_hid_report()
         if( eTaskGetState(joystick1_task_handler) != eSuspended ) {
             debug("suspending reader task");
             vTaskSuspend(joystick1_task_handler);
+            vTaskSuspend(pot1_task_handler);
         }
 
         return;
@@ -109,16 +114,17 @@ static void send_hid_report()
     if(eTaskGetState(joystick1_task_handler) == eSuspended ) {
         debug("resuming joystick reader");
         vTaskResume(joystick1_task_handler);
+        vTaskResume(pot1_task_handler);
     }
 
     hid_gamepad_report_t report =
     {
             .x = joystick1.x.value,
             .y = joystick1.y.value,
-            .z = 0,
-            .rz = 0,
             .rx = 0,
             .ry = 0,
+            .z = pot1.z.value,
+            .rz = 0,
             .hat = 0,
             .buttons = 0
     };

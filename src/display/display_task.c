@@ -25,7 +25,7 @@ extern bool device_mounted;
 extern uint32_t events_processed;
 extern joystick joystick1;
 extern TaskHandle_t joystick1_task_handler;
-
+extern pot pot1;
 
 void display_start_task_running(display_t *d) {
 
@@ -86,7 +86,7 @@ portTASK_FUNCTION(display_update_task, pvParameters) {
     sprintf(buffer[3], "Mounted: %s   Bus: %s",
                             device_mounted ? "Yes" : "No",
                             usb_bus_active ? "Yes" : "No");
-    sprintf(buffer[4], "X: %-4d  Y: %-4d", joystick1.x.value, joystick1.y.value);
+    sprintf(buffer[4], "%4d %4d %4d", joystick1.x.value, joystick1.y.value, pot1.z.value);
 
     switch(eTaskGetState(joystick1_task_handler)) {
 

@@ -16,6 +16,11 @@ extern "C"
 
 // Reader task for this joystick
 portTASK_FUNCTION_PROTO(joystick_reader_task, pvParameters);
+portTASK_FUNCTION_PROTO(pot_reader_task, pvParameters);
+
+#define READ_MODE_JOYSTICK   0
+#define READ_MODE_POT        1
+
 
 typedef struct {
     uint8_t adc_channel;
@@ -27,9 +32,16 @@ typedef struct {
     axis y;
 } joystick;
 
+typedef struct {
+    axis z;
+} pot;
+
 
 joystick create_joystick(uint8_t x_adc_channel, uint8_t y_adc_channel);
+pot create_pot(uint8_t adc_channel);
+
 TaskHandle_t start_joystick(joystick* j);
+TaskHandle_t start_pot(pot* p);
 
 #ifdef __cplusplus
 }

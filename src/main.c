@@ -24,6 +24,9 @@
 joystick joystick1;
 TaskHandle_t joystick1_task_handler;
 
+pot pot1;
+TaskHandle_t pot1_task_handler;
+
 int main(void)
 {
     // All the SDK to bring up the stdio stuff, so we can write to the serial port
@@ -40,6 +43,9 @@ int main(void)
 
     joystick1 = create_joystick(0,1);
     joystick1_task_handler = start_joystick(&joystick1);
+
+    pot1 = create_pot(2);
+    pot1_task_handler = start_pot(&pot1);
 
     debug("starting task scheduler!");
     vTaskStartScheduler();
