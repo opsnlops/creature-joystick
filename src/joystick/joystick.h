@@ -18,7 +18,7 @@ extern "C"
 portTASK_FUNCTION_PROTO(joystick_reader_task, pvParameters);
 
 typedef struct {
-    uint8_t gpio_pin;
+    uint8_t adc_channel;
     int8_t value;
 } axis;
 
@@ -28,7 +28,7 @@ typedef struct {
 } joystick;
 
 
-joystick create_joystick(uint8_t x_gpio_pin, uint8_t y_gpio_pin);
+joystick create_joystick(uint8_t x_adc_channel, uint8_t y_adc_channel);
 TaskHandle_t start_joystick(joystick* j);
 
 #ifdef __cplusplus

@@ -4,14 +4,14 @@
 #include <stdio.h>
 
 
-#include "hardware/adc.h"
-#include "joystick.h"
+#include "joystick/adc.h"
+#include "joystick/joystick.h"
 
 #include "logging/logging.h"
 
 // TODO: This should be tunable
-#define ADC_MIN 1500
-#define ADC_MAX 2560
+#define ADC_MIN 372
+#define ADC_MAX 645
 
 /**
  * @brief Reads a value on an axis from the hardware
@@ -20,9 +20,7 @@
  */
 void read_value(axis* a) {
 
-    adc_select_input(a->gpio_pin - 26);
-
-    uint16_t read_value = adc_read();
+   int read_value = joystick_read_adc(a->adc_channel);
 
     if(read_value > ADC_MAX) {
         warning("clipping joystick reading at %d (was %d)", ADC_MAX, read_value);
@@ -38,30 +36,28 @@ void read_value(axis* a) {
     float percent = (float)(read_value - ADC_MIN) / (float)(ADC_MAX - ADC_MIN);
     a->value = (int8_t)((UCHAR_MAX * percent) + SCHAR_MIN);
 
-    verbose("read value %d from gpio %d", a->value, a->gpio_pin);
+    verbose("read value %d from ADC channel %d", read_value, a->adc_channel);
 }
 
 
-axis create_axis(uint8_t gpio_pin) {
+axis create_axis(uint8_t adc_channel) {
     axis a;
-    a.gpio_pin = gpio_pin;
+    a.adc_channel = adc_channel;
     a.value = 0;
 
-    adc_gpio_init(gpio_pin);
-
-    debug("created a new axis on gpio %d", gpio_pin);
+    debug("created a new axis on ADC channel %d", adc_channel);
 
     return a;
 }
 
 
-joystick create_joystick(uint8_t x_gpio_pin, uint8_t y_gpio_pin) {
+joystick create_joystick(uint8_t x_adc_channel, uint8_t y_adc_channel) {
 
     joystick j;
     axis x, y;
 
-    x = create_axis(x_gpio_pin);
-    y = create_axis(y_gpio_pin);
+    x = create_axis(x_adc_channel);
+    y = create_axis(y_adc_channel);
 
     j.x = x;
     j.y = y;
@@ -85,12 +81,15 @@ TaskHandle_t start_joystick(joystick* j)
 
     // Start off suspended! Will be started when the device is
     // mounted on the host
-    vTaskSuspend(reader_handle);
+    //vTaskSuspend(reader_handle);
+
 
     return reader_handle;
 }
 
 portTASK_FUNCTION(joystick_reader_task, pvParameters) {
+
+    joystick_adc_init();
 
      joystick* j = (joystick*)pvParameters;
 

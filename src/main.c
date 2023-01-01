@@ -13,7 +13,6 @@
 
 // Pico SDK
 #include "pico/stdlib.h"
-#include "hardware/adc.h"
 
 // Our stuff
 #include "display/display_task.h"
@@ -39,8 +38,7 @@ int main(void)
     display_t *d = display_create();
     display_start_task_running(d);
 
-    adc_init();
-    joystick1 = create_joystick(26,27);
+    joystick1 = create_joystick(0,1);
     joystick1_task_handler = start_joystick(&joystick1);
 
     debug("starting task scheduler!");
