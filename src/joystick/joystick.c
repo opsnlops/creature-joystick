@@ -26,6 +26,9 @@ void read_value(axis* a, uint8_t read_mode) {
 
     uint16_t read_value = joystick_read_adc(a->adc_channel);
 
+    // Update the raw value
+    a->raw_value = read_value;
+
     uint16_t min_value = 0;
     uint16_t max_value = 999;
 
@@ -50,9 +53,15 @@ void read_value(axis* a, uint8_t read_mode) {
         read_value = min_value;
     }
 
+    // Update the filter
+    analog_filter_update(&a->filter, read_value);
+
+    // Get the filter's current value
+    uint16_t filter_value = analog_filter_get_value(&a->filter);
+
     // Convert this to an 8-bit value
-    float percent = (float)(read_value - min_value) / (float)(max_value - min_value);
-    a->value = (int8_t)((UCHAR_MAX * percent) + SCHAR_MIN);
+    float percent = (float)(filter_value - min_value) / (float)(max_value - min_value);
+    a->filtered_value = (uint8_t)(UCHAR_MAX * percent);
 
     verbose("read value %d from ADC channel %d", read_value, a->adc_channel);
 }
@@ -61,7 +70,9 @@ void read_value(axis* a, uint8_t read_mode) {
 axis create_axis(uint8_t adc_channel) {
     axis a;
     a.adc_channel = adc_channel;
-    a.value = 0;
+    a.raw_value = 0;
+    a.filtered_value = 0;
+    a.filter = create_analog_filter(true, (float)0.1);
 
     debug("created a new axis on ADC channel %d", adc_channel);
 
@@ -149,7 +160,8 @@ portTASK_FUNCTION(joystick_reader_task, pvParameters) {
         read_value(&j->x, READ_MODE_JOYSTICK);
         read_value(&j->y, READ_MODE_JOYSTICK);
 
-        verbose("Reading joystick: x: %d, y: %d", j->x.value, j->y.value);
+        verbose("Reading joystick: x: %d (%d), y: %d (%d)",
+                j->x.raw_value, j->x.filtered_value, j->y.raw_value, j->y.filtered_value);
 
         vTaskDelay(pdMS_TO_TICKS(10));
 
@@ -171,7 +183,8 @@ portTASK_FUNCTION(pot_reader_task, pvParameters) {
 
         read_value(&p->z, READ_MODE_POT);
 
-        verbose("Reading pot: %d", p->z.value);
+        verbose("Reading pot: %d (%d)",
+                p->z.raw_value, p->z.filtered_value);
 
         vTaskDelay(pdMS_TO_TICKS(10));
 

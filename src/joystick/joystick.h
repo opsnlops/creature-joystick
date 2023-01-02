@@ -14,6 +14,8 @@ extern "C"
 #include "pico/stdlib.h"
 #include "hardware/gpio.h"
 
+#include "joystick/filter.h"
+
 // Reader task for this joystick
 portTASK_FUNCTION_PROTO(joystick_reader_task, pvParameters);
 portTASK_FUNCTION_PROTO(pot_reader_task, pvParameters);
@@ -24,7 +26,9 @@ portTASK_FUNCTION_PROTO(pot_reader_task, pvParameters);
 
 typedef struct {
     uint8_t adc_channel;
-    int8_t value;
+    uint16_t raw_value;
+    uint8_t filtered_value;
+    analog_filter filter;
 } axis;
 
 typedef struct {
@@ -36,7 +40,7 @@ typedef struct {
     axis z;
 } pot;
 
-
+void update_axis(axis *axis, uint16_t new_value);
 joystick create_joystick(uint8_t x_adc_channel, uint8_t y_adc_channel);
 pot create_pot(uint8_t adc_channel);
 
