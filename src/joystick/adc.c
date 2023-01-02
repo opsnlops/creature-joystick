@@ -15,7 +15,7 @@ void joystick_adc_init() {
 
     debug("bringing up the ADC");
 
-    spi_init(spi0, 1000 * 1000);
+    spi_init(spi0, 1000 * 750);
     spi_set_format(spi0, 8, SPI_CPOL_0, SPI_CPHA_0, SPI_MSB_FIRST);
     gpio_set_function(16, GPIO_FUNC_SPI);
     gpio_set_function(18, GPIO_FUNC_SPI);

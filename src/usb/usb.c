@@ -119,11 +119,11 @@ static void send_hid_report()
 
     hid_gamepad_report_t report =
     {
-            .x = joystick1.x.value,
-            .y = joystick1.y.value,
+            .x = joystick1.x.filtered_value + SCHAR_MIN,
+            .y = joystick1.y.filtered_value + SCHAR_MIN,
             .rx = 0,
             .ry = 0,
-            .z = pot1.z.value,
+            .z = pot1.z.filtered_value + SCHAR_MIN,
             .rz = 0,
             .hat = 0,
             .buttons = 0
@@ -214,11 +214,11 @@ void usb_device_task(void *param) {
 
     // init device stack on configured roothub port
     // This should be called after scheduler/kernel is started.
-    // Otherwise it could cause kernel issue since USB IRQ handler does use RTOS queue API.
+    // Otherwise, it could cause kernel issue since USB IRQ handler does use RTOS queue API.
     tud_init(BOARD_TUD_RHPORT);
 
     // RTOS forever loop
-    while (1) {
+    for (EVER) {
         // put this thread to waiting state until there is new events
         tud_task();
     }

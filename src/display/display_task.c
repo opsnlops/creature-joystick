@@ -86,7 +86,7 @@ portTASK_FUNCTION(display_update_task, pvParameters) {
     sprintf(buffer[3], "Mounted: %s   Bus: %s",
                             device_mounted ? "Yes" : "No",
                             usb_bus_active ? "Yes" : "No");
-    sprintf(buffer[4], "%4d %4d %4d", joystick1.x.value, joystick1.y.value, pot1.z.value);
+    sprintf(buffer[4], "%4d %4d %4d", joystick1.x.filtered_value, joystick1.y.filtered_value, pot1.z.filtered_value);
 
     switch(eTaskGetState(joystick1_task_handler)) {
 
