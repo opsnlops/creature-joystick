@@ -9,9 +9,9 @@ extern "C"
 #endif
 
 
-    void joystick_adc_init();
+    void joystick_mcp3008_init();
 
-uint16_t joystick_read_adc(uint8_t adc_channel);
+uint16_t joystick_mcp3008_adc(uint8_t adc_channel);
 
 
 

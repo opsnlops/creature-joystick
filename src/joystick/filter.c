@@ -32,7 +32,7 @@
 
  */
 
-#include <math.h>
+#include <limits.h>
 #include <stdlib.h>
 #include "logging/logging.h"
 
@@ -48,7 +48,7 @@ analog_filter create_analog_filter(bool sleep_enable, float snap_multiplier) {
     // Grab the defaults from the CPP constructor
     f.sleep_enable = sleep_enable;
     f.snap_multiplier = snap_multiplier;
-    f.analog_resolution = 1024;
+    f.analog_resolution = USHRT_MAX;
     f.activity_threshold = (float)4.0;
     f.edge_snap_enable = true;
     f.error_ema = (float)0.0;

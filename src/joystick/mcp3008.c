@@ -5,13 +5,13 @@
 #include "pico/stdlib.h"
 #include "hardware/spi.h"
 
-#include "adc.h"
+#include "mcp3008.h"
 
 #include "logging/logging.h"
 
 #define ADC0_CS_PIN         17
 
-void joystick_adc_init() {
+void joystick_mcp3008_init() {
 
     debug("bringing up the ADC");
 
@@ -32,7 +32,7 @@ void joystick_adc_init() {
 }
 
 
-uint16_t joystick_read_adc(uint8_t adc_channel)
+uint16_t joystick_mcp3008_adc(uint8_t adc_channel)
 {
     uint16_t wBuff[] = {0x01, (0x08 | adc_channel) << 4, 0x00};
     uint16_t rBuff[3];

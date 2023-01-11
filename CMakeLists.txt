@@ -22,7 +22,8 @@ target_sources(joystick PUBLIC
         ${CMAKE_CURRENT_LIST_DIR}/src/display/display.cpp
         ${CMAKE_CURRENT_LIST_DIR}/src/display/display_task.c
         ${CMAKE_CURRENT_LIST_DIR}/src/display/display_wrapper.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/src/joystick/adc.c
+        ${CMAKE_CURRENT_LIST_DIR}/src/joystick/ads1115.c
+        ${CMAKE_CURRENT_LIST_DIR}/src/joystick/mcp3008.c
         ${CMAKE_CURRENT_LIST_DIR}/src/joystick/filter.c
         ${CMAKE_CURRENT_LIST_DIR}/src/joystick/joystick.c
         ${CMAKE_CURRENT_LIST_DIR}/src/logging/logging.c
@@ -30,12 +31,15 @@ target_sources(joystick PUBLIC
         ${CMAKE_CURRENT_LIST_DIR}/src/usb/usb_descriptors.c
         )
 
+add_subdirectory(pico-ssd1306)
+add_subdirectory(pico-ads1115/lib)
+
 # Make sure TinyUSB can find tusb_config.h
 target_include_directories(joystick PUBLIC
         .
-        ${CMAKE_CURRENT_LIST_DIR}/src)
+        ${CMAKE_CURRENT_LIST_DIR}/src
+        )
 
-add_subdirectory(pico-ssd1306)
 
 # In addition to pico_stdlib required for common PicoSDK functionality, add dependency on tinyusb_device
 # for TinyUSB device support and tinyusb_board for the additional board support library used by the example
@@ -46,6 +50,7 @@ target_link_libraries(joystick PUBLIC
         hardware_spi
         tinyusb_device
         tinyusb_board
+        pico-ads1115
         pico_ssd1306
         )
 

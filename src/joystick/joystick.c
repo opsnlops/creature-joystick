@@ -4,7 +4,7 @@
 #include <stdio.h>
 
 
-#include "joystick/adc.h"
+#include "joystick/mcp3008.h"
 #include "joystick/joystick.h"
 
 #include "logging/logging.h"
@@ -24,7 +24,7 @@
  */
 void read_value(axis* a, uint8_t read_mode) {
 
-    uint16_t read_value = joystick_read_adc(a->adc_channel);
+    uint16_t read_value = joystick_mcp3008_adc(a->adc_channel);
 
     // Update the raw value
     a->raw_value = read_value;
@@ -109,7 +109,7 @@ pot create_pot(uint8_t adc_channel) {
 }
 
 
-TaskHandle_t start_joystick(joystick* j)
+TaskHandle_t start_mpc3008_joystick(joystick* j)
 {
     TaskHandle_t reader_handle;
 
@@ -128,7 +128,7 @@ TaskHandle_t start_joystick(joystick* j)
 }
 
 
-TaskHandle_t start_pot(pot* p)
+TaskHandle_t start_mpc3008_pot(pot* p)
 {
     TaskHandle_t reader_handle;
 
@@ -148,7 +148,7 @@ TaskHandle_t start_pot(pot* p)
 
 portTASK_FUNCTION(joystick_reader_task, pvParameters) {
 
-    joystick_adc_init();
+    joystick_mcp3008_init();
 
      joystick* j = (joystick*)pvParameters;
 

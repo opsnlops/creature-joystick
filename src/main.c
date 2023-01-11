@@ -17,6 +17,7 @@
 // Our stuff
 #include "display/display_task.h"
 #include "display/display_wrapper.h"
+#include "joystick/ads1115.h"
 #include "joystick/joystick.h"
 #include "logging/logging.h"
 #include "usb/usb.h"
@@ -42,12 +43,12 @@ int main(void)
     display_start_task_running(d);
 
     joystick1 = create_joystick(0,1);
-    joystick1_task_handler = start_joystick(&joystick1);
+    joystick1_task_handler = start_ads1115_joystick(&joystick1);
 
-    pot1 = create_pot(2);
-    pot1_task_handler = start_pot(&pot1);
+    //pot1 = create_pot(2);
+    //pot1_task_handler = start_mpc3008_pot(&pot1);
 
-    debug("starting task scheduler!");
+    debug("starting task scheuler!");
     vTaskStartScheduler();
 
 }

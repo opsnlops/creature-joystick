@@ -27,7 +27,7 @@ portTASK_FUNCTION_PROTO(pot_reader_task, pvParameters);
 typedef struct {
     uint8_t adc_channel;
     uint16_t raw_value;
-    uint8_t filtered_value;
+    uint16_t filtered_value;
     analog_filter filter;
 } axis;
 
@@ -44,8 +44,8 @@ void update_axis(axis *axis, uint16_t new_value);
 joystick create_joystick(uint8_t x_adc_channel, uint8_t y_adc_channel);
 pot create_pot(uint8_t adc_channel);
 
-TaskHandle_t start_joystick(joystick* j);
-TaskHandle_t start_pot(pot* p);
+TaskHandle_t start_mpc3008_joystick(joystick* j);
+TaskHandle_t start_mpc3008_pot(pot* p);
 
 #ifdef __cplusplus
 }

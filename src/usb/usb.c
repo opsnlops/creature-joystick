@@ -104,7 +104,7 @@ static void send_hid_report()
         if( eTaskGetState(joystick1_task_handler) != eSuspended ) {
             debug("suspending reader task");
             vTaskSuspend(joystick1_task_handler);
-            vTaskSuspend(pot1_task_handler);
+            //vTaskSuspend(pot1_task_handler);
         }
 
         return;
@@ -114,7 +114,7 @@ static void send_hid_report()
     if(eTaskGetState(joystick1_task_handler) == eSuspended ) {
         debug("resuming joystick reader");
         vTaskResume(joystick1_task_handler);
-        vTaskResume(pot1_task_handler);
+        //vTaskResume(pot1_task_handler);
     }
 
     hid_gamepad_report_t report =
