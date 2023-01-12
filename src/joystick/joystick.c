@@ -10,8 +10,8 @@
 #include "logging/logging.h"
 
 // TODO: This should be tunable
-#define JOYSTICK_ADC_MIN 372
-#define JOYSTICK_ADC_MAX 645
+#define JOYSTICK_ADC_MIN 0
+#define JOYSTICK_ADC_MAX 1023
 
 #define POT_ADC_MIN 0
 #define POT_ADC_MAX 1023
