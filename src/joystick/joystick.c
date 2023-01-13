@@ -51,6 +51,10 @@ void read_value(axis* a) {
 
     uint16_t read_value = joystick_read_adc(a->adc_channel);
 
+    if(a->inverted) {
+        read_value = a->adc_max - read_value;
+    }
+
     // Update the raw value
     a->raw_value = read_value;
 
@@ -86,6 +90,7 @@ axis create_axis(uint8_t adc_channel) {
     a.filtered_value = 0;
     a.adc_max = 1023;       // We're using 10 bit ADCs
     a.adc_min = 0;
+    a.inverted = false;
     a.filter = create_analog_filter(true, (float)0.1);
 
     debug("created a new axis on ADC channel %d", adc_channel);

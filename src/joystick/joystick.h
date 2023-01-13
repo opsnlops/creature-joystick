@@ -26,6 +26,7 @@ typedef struct {
     uint16_t adc_min;
     uint16_t adc_max;
     analog_filter filter;
+    bool inverted;
 } axis;
 
 typedef struct {
