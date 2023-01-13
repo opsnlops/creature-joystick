@@ -15,10 +15,8 @@ bool device_mounted = false;
 uint32_t events_processed = 0;
 
 extern joystick joystick1;
-extern TaskHandle_t joystick1_task_handler;
-
 extern pot pot1;
-extern TaskHandle_t pot1_task_handler;
+extern TaskHandle_t analog_reader_task_handler;
 
 StaticTask_t usb_device_task_handle;
 StaticTask_t hid_task_handle;
@@ -101,20 +99,18 @@ static void send_hid_report()
     if ( !tud_hid_ready() ) {
 
         // Before we go, if the reader is running, stop it.
-        if( eTaskGetState(joystick1_task_handler) != eSuspended ) {
+        if( eTaskGetState(analog_reader_task_handler) != eSuspended ) {
             debug("suspending reader task");
-            vTaskSuspend(joystick1_task_handler);
-            vTaskSuspend(pot1_task_handler);
+            vTaskSuspend(analog_reader_task_handler);
         }
 
         return;
     }
 
     // Make sure the reader is running
-    if(eTaskGetState(joystick1_task_handler) == eSuspended ) {
+    if(eTaskGetState(analog_reader_task_handler) == eSuspended ) {
         debug("resuming joystick reader");
-        vTaskResume(joystick1_task_handler);
-        vTaskResume(pot1_task_handler);
+        vTaskResume(analog_reader_task_handler);
     }
 
     hid_gamepad_report_t report =

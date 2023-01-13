@@ -17,17 +17,14 @@ extern "C"
 #include "joystick/filter.h"
 
 // Reader task for this joystick
-portTASK_FUNCTION_PROTO(joystick_reader_task, pvParameters);
-portTASK_FUNCTION_PROTO(pot_reader_task, pvParameters);
-
-#define READ_MODE_JOYSTICK   0
-#define READ_MODE_POT        1
-
+portTASK_FUNCTION_PROTO(analog_reader_task, pvParameters);
 
 typedef struct {
     uint8_t adc_channel;
     uint16_t raw_value;
     uint8_t filtered_value;
+    uint16_t adc_min;
+    uint16_t adc_max;
     analog_filter filter;
 } axis;
 
@@ -40,12 +37,15 @@ typedef struct {
     axis z;
 } pot;
 
+void init_reader();
+void register_axis(axis* a);
+
 void update_axis(axis *axis, uint16_t new_value);
+void read_value(axis* a);
 joystick create_joystick(uint8_t x_adc_channel, uint8_t y_adc_channel);
 pot create_pot(uint8_t adc_channel);
 
-TaskHandle_t start_joystick(joystick* j);
-TaskHandle_t start_pot(pot* p);
+TaskHandle_t start_analog_reader_task();
 
 #ifdef __cplusplus
 }

@@ -22,10 +22,10 @@
 #include "usb/usb.h"
 
 joystick joystick1;
-TaskHandle_t joystick1_task_handler;
-
 pot pot1;
-TaskHandle_t pot1_task_handler;
+
+
+TaskHandle_t analog_reader_task_handler;
 
 int main(void)
 {
@@ -34,6 +34,7 @@ int main(void)
 
     logger_init();
     board_init();
+    init_reader();
 
     start_usb_tasks();
 
@@ -42,10 +43,12 @@ int main(void)
     display_start_task_running(d);
 
     joystick1 = create_joystick(0,1);
-    joystick1_task_handler = start_joystick(&joystick1);
-
     pot1 = create_pot(2);
-    pot1_task_handler = start_pot(&pot1);
+
+    register_axis(&joystick1.x);
+    register_axis(&joystick1.y);
+    register_axis(&pot1.z);
+    analog_reader_task_handler = start_analog_reader_task();
 
     debug("starting task scheduler!");
     vTaskStartScheduler();

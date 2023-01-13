@@ -22,7 +22,6 @@ extern "C"
 #define HID_STACK_SIZE      configMINIMAL_STACK_SIZE
 
 portTASK_FUNCTION_PROTO(usb_device_task, pvParameters);
-
 portTASK_FUNCTION_PROTO(hid_task, pvParameters);
 
 void start_usb_tasks();

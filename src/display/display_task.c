@@ -24,7 +24,7 @@ extern bool usb_bus_active;
 extern bool device_mounted;
 extern uint32_t events_processed;
 extern joystick joystick1;
-extern TaskHandle_t joystick1_task_handler;
+extern TaskHandle_t analog_reader_task_handler;
 extern pot pot1;
 
 void display_start_task_running(display_t *d) {
@@ -88,7 +88,7 @@ portTASK_FUNCTION(display_update_task, pvParameters) {
                             usb_bus_active ? "Yes" : "No");
     sprintf(buffer[4], "%4d %4d %4d", joystick1.x.filtered_value, joystick1.y.filtered_value, pot1.z.filtered_value);
 
-    switch(eTaskGetState(joystick1_task_handler)) {
+    switch(eTaskGetState(analog_reader_task_handler)) {
 
         case(eSuspended):
             taskState = "Suspended";

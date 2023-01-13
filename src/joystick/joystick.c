@@ -9,12 +9,37 @@
 
 #include "logging/logging.h"
 
-// TODO: This should be tunable
-#define JOYSTICK_ADC_MIN 0
-#define JOYSTICK_ADC_MAX 1023
 
-#define POT_ADC_MIN 0
-#define POT_ADC_MAX 1023
+#define MAX_NUMBER_OF_AXEN      24
+
+// Keep track of the number of axis we read
+uint8_t number_of_axen;
+axis* axis_collection[MAX_NUMBER_OF_AXEN];
+
+
+void init_reader() {
+
+    number_of_axen = 0;
+
+    // Wipe out our axis collection
+    memset(axis_collection, '\0', sizeof(axis*) * MAX_NUMBER_OF_AXEN);
+
+    debug("created the array of axen");
+
+
+}
+
+void register_axis(axis* a) {
+
+    if(number_of_axen >= MAX_NUMBER_OF_AXEN){
+        fatal("more than %d axen registered", MAX_NUMBER_OF_AXEN);
+        tight_loop_contents();
+    }
+
+    axis_collection[number_of_axen] = a;
+    number_of_axen++;
+    debug("registered new axis on channel %d. total number: %d", a->adc_channel, number_of_axen);
+}
 
 /**
  * @brief Reads a value on an axis from the hardware
@@ -22,35 +47,23 @@
  * @param a the axis to check (in/out)
  * @param read_mode which mode should we be in?
  */
-void read_value(axis* a, uint8_t read_mode) {
+void read_value(axis* a) {
 
     uint16_t read_value = joystick_read_adc(a->adc_channel);
 
     // Update the raw value
     a->raw_value = read_value;
 
-    uint16_t min_value = 0;
-    uint16_t max_value = 999;
-
-    // TODO: Clean this up
-    if(read_mode == READ_MODE_JOYSTICK) {
-        min_value = JOYSTICK_ADC_MIN;
-        max_value = JOYSTICK_ADC_MAX;
-    } else if(read_mode == READ_MODE_POT) {
-        min_value = POT_ADC_MIN;
-        max_value = POT_ADC_MAX;
+    if(read_value > a->adc_max) {
+        warning("clipping adc channel %d reading at %d (was %d)",
+                a->adc_channel, a->adc_max, read_value);
+        read_value = a->adc_max;
     }
 
-    if(read_value > max_value) {
+    if(read_value < a->adc_min) {
         warning("clipping adc channel %d reading at %d (was %d)",
-                a->adc_channel, max_value, read_value);
-        read_value = max_value;
-    }
-
-    if(read_value < min_value) {
-        warning("clipping adc channel %d reading at %d (was %d)",
-                a->adc_channel, min_value, read_value);
-        read_value = min_value;
+                a->adc_channel, a->adc_min, read_value);
+        read_value = a->adc_min;
     }
 
     // Update the filter
@@ -60,8 +73,7 @@ void read_value(axis* a, uint8_t read_mode) {
     uint16_t filter_value = analog_filter_get_value(&a->filter);
 
     // Convert this to an 8-bit value
-    float percent = (float)(filter_value - min_value) / (float)(max_value - min_value);
-    a->filtered_value = (uint8_t)(UCHAR_MAX * percent);
+    a->filtered_value = (uint8_t)(filter_value >> 2);
 
     verbose("read value %d from ADC channel %d", read_value, a->adc_channel);
 }
@@ -72,6 +84,8 @@ axis create_axis(uint8_t adc_channel) {
     a.adc_channel = adc_channel;
     a.raw_value = 0;
     a.filtered_value = 0;
+    a.adc_max = 1023;       // We're using 10 bit ADCs
+    a.adc_min = 0;
     a.filter = create_analog_filter(true, (float)0.1);
 
     debug("created a new axis on ADC channel %d", adc_channel);
@@ -109,14 +123,14 @@ pot create_pot(uint8_t adc_channel) {
 }
 
 
-TaskHandle_t start_joystick(joystick* j)
+TaskHandle_t start_analog_reader_task()
 {
     TaskHandle_t reader_handle;
 
-    xTaskCreate(joystick_reader_task,
-                "joystick_reader_task",
+    xTaskCreate(analog_reader_task,
+                "analog_reader_task",
                 1024,
-                (void*)j,
+                (void*)0,
                 1,
                 &reader_handle);
 
@@ -128,63 +142,21 @@ TaskHandle_t start_joystick(joystick* j)
 }
 
 
-TaskHandle_t start_pot(pot* p)
-{
-    TaskHandle_t reader_handle;
-
-    xTaskCreate(pot_reader_task,
-                "pot_reader_task",
-                1024,
-                (void*)p,
-                1,
-                &reader_handle);
-
-    // Start off suspended! Will be started when the device is
-    // mounted on the host
-    vTaskSuspend(reader_handle);
-
-    return reader_handle;
-}
-
-portTASK_FUNCTION(joystick_reader_task, pvParameters) {
+portTASK_FUNCTION(analog_reader_task, pvParameters) {
 
     joystick_adc_init();
 
-     joystick* j = (joystick*)pvParameters;
-
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "EndlessLoop"
 
     for(EVER) {
 
-        read_value(&j->x, READ_MODE_JOYSTICK);
-        read_value(&j->y, READ_MODE_JOYSTICK);
+        for(int i = 0; i < number_of_axen; i++) {
 
-        verbose("Reading joystick: x: %d (%d), y: %d (%d)",
-                j->x.raw_value, j->x.filtered_value, j->y.raw_value, j->y.filtered_value);
-
-        vTaskDelay(pdMS_TO_TICKS(10));
-
-    }
-
-#pragma clang diagnostic pop
-
-}
-
-
-portTASK_FUNCTION(pot_reader_task, pvParameters) {
-
-    pot* p = (pot*)pvParameters;
-
-#pragma clang diagnostic push
-#pragma ide diagnostic ignored "EndlessLoop"
-
-    for(EVER) {
-
-        read_value(&p->z, READ_MODE_POT);
-
-        verbose("Reading pot: %d (%d)",
-                p->z.raw_value, p->z.filtered_value);
+            axis* a = axis_collection[i];
+            read_value(a);
+            verbose("read value %d (%d) from adc_channel %d", a->filtered_value, a->raw_value,  a->adc_channel);
+        }
 
         vTaskDelay(pdMS_TO_TICKS(10));
 
