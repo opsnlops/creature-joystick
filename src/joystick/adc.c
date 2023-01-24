@@ -9,7 +9,7 @@
 
 #include "logging/logging.h"
 
-#define ADC0_CS_PIN         17
+#define ADC0_CS_PIN         5
 
 void joystick_adc_init() {
 
@@ -17,9 +17,9 @@ void joystick_adc_init() {
 
     spi_init(spi0, 1000 * 750);
     spi_set_format(spi0, 8, SPI_CPOL_0, SPI_CPHA_0, SPI_MSB_FIRST);
-    gpio_set_function(16, GPIO_FUNC_SPI);
-    gpio_set_function(18, GPIO_FUNC_SPI);
-    gpio_set_function(19, GPIO_FUNC_SPI);
+    gpio_set_function(2, GPIO_FUNC_SPI);
+    gpio_set_function(3, GPIO_FUNC_SPI);
+    gpio_set_function(4, GPIO_FUNC_SPI);
 
 
     // Chip Select

@@ -30,10 +30,10 @@ Display::Display() {
     i2c_init(DISPLAY_I2C_CONTROLLER, DISPLAY_I2C_BAUD_RATE);
 
     // Set up pins 12 and 13
-    gpio_set_function(12, GPIO_FUNC_I2C);
-    gpio_set_function(13, GPIO_FUNC_I2C);
-    gpio_pull_up(12);
-    gpio_pull_up(13);
+    gpio_set_function(14, GPIO_FUNC_I2C);
+    gpio_set_function(15, GPIO_FUNC_I2C);
+    gpio_pull_up(14);
+    gpio_pull_up(15);
 
     debug("leaving Display()");
 

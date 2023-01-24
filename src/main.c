@@ -22,9 +22,7 @@
 #include "usb/usb.h"
 
 joystick joystick1;
-joystick joystick2;
 pot pot1;
-pot pot2;
 
 
 TaskHandle_t analog_reader_task_handler;
@@ -44,19 +42,13 @@ int main(void)
     display_t *d = display_create();
     display_start_task_running(d);
 
-    joystick1 = create_joystick(3,4);
+    joystick1 = create_joystick(0,1);
     joystick1.x.inverted = true;
-    joystick2 = create_joystick(0,1);
-    joystick2.x.inverted = true;
     pot1 = create_pot(2);
-    pot2 = create_pot(5);
 
     register_axis(&joystick1.x);
     register_axis(&joystick1.y);
-    register_axis(&joystick2.x);
-    register_axis(&joystick2.y);
     register_axis(&pot1.z);
-    register_axis(&pot2.z);
     analog_reader_task_handler = start_analog_reader_task();
 
     debug("starting task scheduler!");

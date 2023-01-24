@@ -15,9 +15,7 @@ bool device_mounted = false;
 uint32_t events_processed = 0;
 
 extern joystick joystick1;
-extern joystick joystick2;
 extern pot pot1;
-extern pot pot2;
 extern TaskHandle_t analog_reader_task_handler;
 
 StaticTask_t usb_device_task_handle;
@@ -119,10 +117,10 @@ static void send_hid_report()
     {
             .x = joystick1.x.filtered_value + SCHAR_MIN,
             .y = joystick1.y.filtered_value + SCHAR_MIN,
-            .rx = joystick2.x.filtered_value + SCHAR_MIN,
-            .ry = joystick2.y.filtered_value + SCHAR_MIN,
+            .rx = 0,
+            .ry = 0,
             .z = pot1.z.filtered_value + SCHAR_MIN,
-            .rz = pot2.z.filtered_value + SCHAR_MIN,
+            .rz = 0,
             .hat = 0,
             .buttons = 0
     };
