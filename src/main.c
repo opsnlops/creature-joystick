@@ -23,6 +23,7 @@
 
 joystick joystick1;
 pot pot1;
+pot pot2;
 
 
 TaskHandle_t analog_reader_task_handler;
@@ -42,13 +43,15 @@ int main(void)
     display_t *d = display_create();
     display_start_task_running(d);
 
-    joystick1 = create_joystick(0,1);
-    joystick1.x.inverted = true;
+    joystick1 = create_joystick(1,0);
     pot1 = create_pot(2);
+    pot2 = create_pot(3);
+    pot2.z.inverted = true;
 
     register_axis(&joystick1.x);
     register_axis(&joystick1.y);
     register_axis(&pot1.z);
+    register_axis(&pot2.z);
     analog_reader_task_handler = start_analog_reader_task();
 
     debug("starting task scheduler!");

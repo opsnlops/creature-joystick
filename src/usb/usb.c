@@ -16,6 +16,7 @@ uint32_t events_processed = 0;
 
 extern joystick joystick1;
 extern pot pot1;
+extern pot pot2;
 extern TaskHandle_t analog_reader_task_handler;
 
 StaticTask_t usb_device_task_handle;
@@ -120,7 +121,7 @@ static void send_hid_report()
             .rx = 0,
             .ry = 0,
             .z = pot1.z.filtered_value + SCHAR_MIN,
-            .rz = 0,
+            .rz = pot2.z.filtered_value + SCHAR_MIN,
             .hat = 0,
             .buttons = 0
     };
