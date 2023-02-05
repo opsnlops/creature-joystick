@@ -48,8 +48,8 @@ analog_filter create_analog_filter(bool sleep_enable, float snap_multiplier) {
     // Grab the defaults from the CPP constructor
     f.sleep_enable = sleep_enable;
     f.snap_multiplier = snap_multiplier;
-    f.analog_resolution = 1024;
-    f.activity_threshold = (float)4.0;
+    f.analog_resolution = 4096;
+    f.activity_threshold = (float)20.0;
     f.edge_snap_enable = true;
     f.error_ema = (float)0.0;
     f.sleeping = false;

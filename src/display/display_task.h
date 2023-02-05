@@ -10,7 +10,7 @@
 #include "controller-config.h"
 
 
-void display_start_task_running(display_t *d);
+void display_start_task_running(volatile display_t *d);
 
 
 portTASK_FUNCTION_PROTO(display_update_task, pvParameters);

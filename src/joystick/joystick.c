@@ -10,7 +10,7 @@
 #include "logging/logging.h"
 
 
-#define MAX_NUMBER_OF_AXEN      24
+#define MAX_NUMBER_OF_AXEN      8
 
 // Keep track of the number of axis we read
 uint8_t number_of_axen;
@@ -77,9 +77,10 @@ void read_value(axis* a) {
     uint16_t filter_value = analog_filter_get_value(&a->filter);
 
     // Convert this to an 8-bit value
-    a->filtered_value = (uint8_t)(filter_value >> 2);
+    a->filtered_value = (uint8_t)(filter_value >> 4);
 
-    verbose("read value %d from ADC channel %d", read_value, a->adc_channel);
+    verbose("read adc %d - raw: %d, filtered: %d, 8-bit: %d",
+            a->adc_channel,read_value, filter_value, a->filtered_value);
 }
 
 
@@ -88,7 +89,7 @@ axis create_axis(uint8_t adc_channel) {
     a.adc_channel = adc_channel;
     a.raw_value = 0;
     a.filtered_value = 0;
-    a.adc_max = 1023;       // We're using 10 bit ADCs
+    a.adc_max = 4095;       // We're using 13 bit ADCs
     a.adc_min = 0;
     a.inverted = false;
     a.filter = create_analog_filter(true, (float)0.1);
@@ -139,9 +140,11 @@ TaskHandle_t start_analog_reader_task()
                 1,
                 &reader_handle);
 
+#ifdef SUSPEND_READER_WHEN_NO_USB
     // Start off suspended! Will be started when the device is
     // mounted on the host
     vTaskSuspend(reader_handle);
+#endif
 
     return reader_handle;
 }
@@ -163,7 +166,7 @@ portTASK_FUNCTION(analog_reader_task, pvParameters) {
             verbose("read value %d (%d) from adc_channel %d", a->filtered_value, a->raw_value,  a->adc_channel);
         }
 
-        vTaskDelay(pdMS_TO_TICKS(10));
+        vTaskDelay(pdMS_TO_TICKS(20));
 
     }
 

@@ -8,7 +8,8 @@
 // Just because it's funny
 #define EVER ;;
 
-
+// If this is defined, suspend the reader when there's no USB connection
+#define SUSPEND_READER_WHEN_NO_USB  1
 
 /*
  * Display Stuff

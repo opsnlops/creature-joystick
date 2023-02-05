@@ -34,12 +34,37 @@ void joystick_adc_init() {
 
 uint16_t joystick_read_adc(uint8_t adc_channel)
 {
-    uint16_t wBuff[] = {0x01, (0x08 | adc_channel) << 4, 0x00};
-    uint16_t rBuff[3];
 
+    /*
+     * The datasheet for the MCP3304 is at:
+     * https://ww1.microchip.com/downloads/aemDocuments/documents/APID/ProductDocuments/DataSheets/21697F.pdf
+     */
+
+    // Bring up the CS pin
     gpio_put(ADC0_CS_PIN, 0);
-    spi_write16_read16_blocking(spi0, wBuff, rBuff, 3);
+
+    uint8_t command_bits = 12;              // 00001100
+    command_bits |= (adc_channel >> 1);
+    spi_write_blocking(spi0, &command_bits, 1); // throw away the read value
+
+    command_bits = 0;
+    command_bits |= (adc_channel << 7);
+
+    uint8_t b1, b2; // The two bytes we care about
+
+    spi_write_read_blocking(spi0, &command_bits, &b1, 1);
+
+    b1 |= 224;                  // 11100000
+    uint8_t hi = b1 & 15;       // 00001111
+
+    spi_read_blocking(spi0, 0, &b2, 1);
+
     vTaskDelay(pdMS_TO_TICKS(0.05));
     gpio_put(ADC0_CS_PIN, 1);
-    return ((uint16_t)rBuff[1] & 0x03) << 8 | (uint16_t)rBuff[2];
+
+    uint8_t low = b2;
+    uint16_t reading = hi * 256 + low;
+
+    return reading;
+
 }

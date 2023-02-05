@@ -33,7 +33,7 @@ void start_usb_tasks() {
                 "usbd",
                 USBD_STACK_SIZE,
                 NULL,
-                configMAX_PRIORITIES - 1,
+                1,
                 usb_device_stack,
                 &usb_device_task_handle);
 
@@ -42,7 +42,7 @@ void start_usb_tasks() {
                 "hid",
                 HID_STACK_SIZE,
                 NULL,
-                configMAX_PRIORITIES - 2,
+                1,
                 hid_stack,
                 &hid_task_handle);
 
@@ -96,6 +96,9 @@ void tud_resume_cb(void)
 
 static void send_hid_report()
 {
+
+#ifdef SUSPEND_READER_WHEN_NO_USB
+
     // skip if hid is not ready yet
     if ( !tud_hid_ready() ) {
 
@@ -114,14 +117,16 @@ static void send_hid_report()
         vTaskResume(analog_reader_task_handler);
     }
 
+#endif
+
     hid_gamepad_report_t report =
     {
             .x = joystick1.x.filtered_value + SCHAR_MIN,
             .y = joystick1.y.filtered_value + SCHAR_MIN,
+            .z = pot1.z.filtered_value + SCHAR_MIN,
             .rx = 0,
             .ry = 0,
-            .z = pot1.z.filtered_value + SCHAR_MIN,
-            .rz = pot2.z.filtered_value + SCHAR_MIN,
+            .rz = 0,
             .hat = 0,
             .buttons = 0
     };

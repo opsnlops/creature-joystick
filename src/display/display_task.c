@@ -27,7 +27,7 @@ extern joystick joystick1;
 extern TaskHandle_t analog_reader_task_handler;
 extern pot pot1;
 
-void display_start_task_running(display_t *d) {
+void display_start_task_running(volatile display_t *d) {
 
     info("starting display");
 
@@ -35,7 +35,7 @@ void display_start_task_running(display_t *d) {
                 "display_update_task",
                 1024,
                 (void*)d,         // Pass in a reference to our display
-                0,                      // Low priority
+                1,                      // Low priority
                 &display_update_task_handle);
 }
 
@@ -87,6 +87,8 @@ portTASK_FUNCTION(display_update_task, pvParameters) {
                             device_mounted ? "Yes" : "No",
                             usb_bus_active ? "Yes" : "No");
     sprintf(buffer[4], "%4d %4d %4d", joystick1.x.filtered_value, joystick1.y.filtered_value, pot1.z.filtered_value);
+
+    //sprintf(buffer[4], "%4d", pot1.z.filtered_value);
 
     switch(eTaskGetState(analog_reader_task_handler)) {
 
