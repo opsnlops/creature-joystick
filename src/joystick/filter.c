@@ -32,14 +32,10 @@
 
  */
 
-#include <math.h>
 #include <stdlib.h>
 #include "logging/logging.h"
 
 #include "filter.h"
-
-
-
 
 analog_filter create_analog_filter(bool sleep_enable, float snap_multiplier) {
 

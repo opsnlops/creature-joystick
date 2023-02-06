@@ -43,6 +43,7 @@ target_link_libraries(joystick PUBLIC
         FreeRTOS-Kernel
         FreeRTOS-Kernel-Heap4
         pico_stdlib
+        pico_unique_id
         hardware_spi
         tinyusb_device
         tinyusb_board

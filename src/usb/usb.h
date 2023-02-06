@@ -1,3 +1,5 @@
+#include <sys/select.h>
+#include <sys/cdefs.h>
 
 #ifndef CREATURES_USB_H_
 #define CREATURES_USB_H_
@@ -21,13 +23,17 @@ extern "C"
 #define USBD_STACK_SIZE    (3*configMINIMAL_STACK_SIZE/2) * (CFG_TUSB_DEBUG ? 2 : 1)
 #define HID_STACK_SIZE      configMINIMAL_STACK_SIZE
 
+_Noreturn
 portTASK_FUNCTION_PROTO(usb_device_task, pvParameters);
-portTASK_FUNCTION_PROTO(hid_task, pvParameters);
+
+_Noreturn portTASK_FUNCTION_PROTO(hid_task, pvParameters);
 
 void start_usb_tasks();
 
 
 static void send_hid_report();
+
+void send_cdc(uint8_t buf[], uint32_t count);
 
 #ifdef __cplusplus
 }

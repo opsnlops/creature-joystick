@@ -1,4 +1,7 @@
 
+#include "controller-config.h"
+
+#include <sys/cdefs.h>
 #include <limits.h>
 
 #include <FreeRTOS.h>
@@ -6,7 +9,6 @@
 
 #include "joystick/joystick.h"
 #include "logging/logging.h"
-#include "usb_descriptors.h"
 #include "usb/usb.h"
 
 uint32_t reports_sent = 0;
@@ -16,13 +18,21 @@ uint32_t events_processed = 0;
 
 extern joystick joystick1;
 extern pot pot1;
+
+extern joystick joystick2;
 extern pot pot2;
+
 extern TaskHandle_t analog_reader_task_handler;
 
 StaticTask_t usb_device_task_handle;
 StaticTask_t hid_task_handle;
 StackType_t usb_device_stack[USBD_STACK_SIZE];
 StackType_t hid_stack[HID_STACK_SIZE];
+
+enum {
+    ITF_LEFT = 0,
+    ITF_RIGHT = 1
+};
 
 void start_usb_tasks() {
 
@@ -88,6 +98,18 @@ void tud_resume_cb(void)
 }
 
 
+/*
+ * CDC Stuff
+ */
+
+void send_cdc(uint8_t buf[], uint32_t count) {
+
+    for(uint32_t i=0; i<count; i++) {
+        tud_cdc_n_write_char(2, buf[i]);
+    }
+
+    debug("send stuff to CDC");
+}
 
 
 //--------------------------------------------------------------------+
@@ -99,8 +121,8 @@ static void send_hid_report()
 
 #ifdef SUSPEND_READER_WHEN_NO_USB
 
-    // skip if hid is not ready yet
-    if ( !tud_hid_ready() ) {
+    // Skip if none of the HIDs are ready
+    if ( !tud_hid_n_ready(ITF_LEFT) && !tud_hid_n_ready(ITF_RIGHT)) {
 
         // Before we go, if the reader is running, stop it.
         if( eTaskGetState(analog_reader_task_handler) != eSuspended ) {
@@ -119,21 +141,40 @@ static void send_hid_report()
 
 #endif
 
-    hid_gamepad_report_t report =
-    {
-            .x = joystick1.x.filtered_value + SCHAR_MIN,
-            .y = joystick1.y.filtered_value + SCHAR_MIN,
-            .z = pot1.z.filtered_value + SCHAR_MIN,
-            .rx = 0,
-            .ry = 0,
-            .rz = 0,
-            .hat = 0,
-            .buttons = 0
-    };
+    if ( tud_hid_n_ready(ITF_LEFT) ) {
 
-    if (tud_hid_ready())
-    {
-        tud_hid_n_report(0x00, 0x01, &report, sizeof(report));
+        verbose("send_hid_report: left");
+
+        tud_hid_n_gamepad_report(
+                ITF_LEFT,
+                0x01,
+                joystick1.x.filtered_value + SCHAR_MIN,
+                joystick1.y.filtered_value + SCHAR_MIN,
+                0,
+                0,
+                joystick1.z.filtered_value + SCHAR_MIN,
+                pot1.z.filtered_value + SCHAR_MIN,
+                0,
+                0
+                );
+    }
+
+    if ( tud_hid_n_ready(ITF_RIGHT) ) {
+
+        verbose("send_hid_report: right");
+
+        tud_hid_n_gamepad_report(
+                ITF_RIGHT,
+                0x01,
+                joystick2.x.filtered_value + SCHAR_MIN,
+                joystick2.y.filtered_value + SCHAR_MIN,
+                0,
+                0,
+                joystick2.z.filtered_value + SCHAR_MIN,
+                pot2.z.filtered_value + SCHAR_MIN,
+                0,
+                0
+        );
     }
 
     reports_sent++;
@@ -144,15 +185,19 @@ static void send_hid_report()
 // Note: For composite reports, report[0] is report ID
 void tud_hid_report_complete_cb(uint8_t instance, uint8_t const* report, uint8_t len)
 {
-    (void) instance;
-    (void) len;
+    verbose("tud_hid_report_complete_cb: instance: %d, report: %d, len: %d", instance, report[0], len);
 
-    uint8_t next_report_id = report[0] + 1;
+    /*
+     * This could be used to send more reports, like if we had a keyboard. We're using a polling
+     * joystick, so it doesn't really matter
+     *
+        uint8_t next_report_id = report[0] + 1;
 
-    if (next_report_id < REPORT_ID_COUNT)
-    {
-       // send_hid_report(next_report_id, board_button_read());
-    }
+        if (next_report_id < REPORT_ID_COUNT)
+        {
+           send_hid_report(next_report_id, board_button_read());
+        }
+     */
 }
 
 // Invoked when received GET_REPORT control request
@@ -176,21 +221,24 @@ void tud_hid_set_report_cb(uint8_t instance, uint8_t report_id, hid_report_type_
 {
     (void) instance;
 
-    debug("report: %d", report_type);
+    verbose("report: %d", report_type);
 
+    /*
     if (report_type == HID_REPORT_TYPE_OUTPUT)
     {
 
     }
+     */
 }
 
 
-void hid_task(void *param) {
+_Noreturn void hid_task(void *param) {
     (void) param;
 
     for (EVER) {
+
         // Poll every 10ms
-        vTaskDelay(pdMS_TO_TICKS(10));
+        vTaskDelay(pdMS_TO_TICKS(POLLING_INTERVAL));
 
         // Remote wakeup
         if (tud_suspended()) {
@@ -209,7 +257,7 @@ void hid_task(void *param) {
 
 // USB Device Driver task
 // This top level thread process all usb events and invoke callbacks
-void usb_device_task(void *param) {
+_Noreturn void usb_device_task(void *param) {
     (void) param;
 
     tusb_init();

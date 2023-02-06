@@ -11,6 +11,9 @@
 // If this is defined, suspend the reader when there's no USB connection
 #define SUSPEND_READER_WHEN_NO_USB  1
 
+// How many milliseconds should we treat each frame?
+#define POLLING_INTERVAL            10
+
 /*
  * Display Stuff
  */
@@ -18,7 +21,7 @@
 // Update every 33ms (roughly 30Hz)
 #define DISPLAY_UPDATE_TIME_MS      33
 #define DISPLAY_BUFFER_SIZE         26
-#define DISPLAY_NUMBER_OF_LINES     6
+#define DISPLAY_NUMBER_OF_LINES     7
 
 
 /*

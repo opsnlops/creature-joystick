@@ -32,6 +32,7 @@ typedef struct {
 typedef struct {
     axis x;
     axis y;
+    axis z;
 } joystick;
 
 typedef struct {
@@ -43,7 +44,8 @@ void register_axis(axis* a);
 
 void update_axis(axis *axis, uint16_t new_value);
 void read_value(axis* a);
-joystick create_joystick(uint8_t x_adc_channel, uint8_t y_adc_channel);
+joystick create_2axis_joystick(uint8_t x_adc_channel, uint8_t y_adc_channel);
+joystick create_3axis_joystick(uint8_t x_adc_channel, uint8_t y_adc_channel, uint8_t z_adc_channel);
 pot create_pot(uint8_t adc_channel);
 
 TaskHandle_t start_analog_reader_task();

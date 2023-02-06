@@ -9,7 +9,7 @@
 
 #include "logging.h"
 
-
+#include "usb/usb.h"
 
 TaskHandle_t log_queue_reader_task_handle;
 QueueHandle_t creature_log_message_queue_handle;
@@ -170,6 +170,8 @@ portTASK_FUNCTION(log_queue_reader_task, pvParameters) {
             // Format our message
             uint32_t time = to_ms_since_boot(get_absolute_time());
             printf("[%lu]%s %s\n", time, levelBuffer, lm.message);
+
+            //send_cdc("hi", 2);
 
             // Wipe the buffer for next time
             memset(&levelBuffer, '\0', 4);

@@ -1,8 +1,8 @@
 
 
-#include <limits.h>
 #include <stdio.h>
 
+#include "controller-config.h"
 
 #include "joystick/adc.h"
 #include "joystick/joystick.h"
@@ -100,7 +100,7 @@ axis create_axis(uint8_t adc_channel) {
 }
 
 
-joystick create_joystick(uint8_t x_adc_channel, uint8_t y_adc_channel) {
+joystick create_2axis_joystick(uint8_t x_adc_channel, uint8_t y_adc_channel) {
 
     joystick j;
     axis x, y;
@@ -110,6 +110,24 @@ joystick create_joystick(uint8_t x_adc_channel, uint8_t y_adc_channel) {
 
     j.x = x;
     j.y = y;
+
+    debug("created a new joystick");
+    return j;
+
+}
+
+joystick create_3axis_joystick(uint8_t x_adc_channel, uint8_t y_adc_channel, uint8_t z_adc_channel) {
+
+    joystick j;
+    axis x, y, z;
+
+    x = create_axis(x_adc_channel);
+    y = create_axis(y_adc_channel);
+    z = create_axis(z_adc_channel);
+
+    j.x = x;
+    j.y = y;
+    j.z = z;
 
     debug("created a new joystick");
     return j;
@@ -166,7 +184,7 @@ portTASK_FUNCTION(analog_reader_task, pvParameters) {
             verbose("read value %d (%d) from adc_channel %d", a->filtered_value, a->raw_value,  a->adc_channel);
         }
 
-        vTaskDelay(pdMS_TO_TICKS(20));
+        vTaskDelay(pdMS_TO_TICKS(POLLING_INTERVAL));
 
     }
 

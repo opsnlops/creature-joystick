@@ -23,9 +23,15 @@ extern uint32_t reports_sent;
 extern bool usb_bus_active;
 extern bool device_mounted;
 extern uint32_t events_processed;
+
 extern joystick joystick1;
-extern TaskHandle_t analog_reader_task_handler;
 extern pot pot1;
+
+extern joystick joystick2;
+extern pot pot2;
+
+extern TaskHandle_t analog_reader_task_handler;
+
 
 void display_start_task_running(volatile display_t *d) {
 
@@ -86,9 +92,11 @@ portTASK_FUNCTION(display_update_task, pvParameters) {
     sprintf(buffer[3], "Mounted: %s   Bus: %s",
                             device_mounted ? "Yes" : "No",
                             usb_bus_active ? "Yes" : "No");
-    sprintf(buffer[4], "%4d %4d %4d", joystick1.x.filtered_value, joystick1.y.filtered_value, pot1.z.filtered_value);
+    sprintf(buffer[4], "L: %4d %4d %4d %4d",
+            joystick1.x.filtered_value, joystick1.y.filtered_value, joystick1.z.filtered_value, pot1.z.filtered_value);
 
-    //sprintf(buffer[4], "%4d", pot1.z.filtered_value);
+    sprintf(buffer[5], "R: %4d %4d %4d %4d",
+                joystick2.x.filtered_value, joystick2.y.filtered_value, joystick2.z.filtered_value, pot2.z.filtered_value);
 
     switch(eTaskGetState(analog_reader_task_handler)) {
 
@@ -113,15 +121,16 @@ portTASK_FUNCTION(display_update_task, pvParameters) {
             break;
     }
 
-    sprintf(buffer[5], "%25s", taskState);
+    sprintf(buffer[6], "%25s", taskState);
 
 
     display_draw_text_small(d, buffer[0], 0, 0);
     display_draw_text_small(d, buffer[1], 0, 7);
     display_draw_text_small(d, buffer[2], 0, 14);
     display_draw_text_small(d, buffer[3], 0, 21);
-    display_draw_text_medium(d, buffer[4], 0, 40);
-    display_draw_text_small(d, buffer[5], 0, 56);
+    display_draw_text_small(d, buffer[4], 0, 36);
+    display_draw_text_small(d, buffer[5], 0, 44);
+    display_draw_text_small(d, buffer[6], 0, 56);
 
     display_send_buffer(d);
 
