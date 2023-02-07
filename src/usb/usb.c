@@ -10,6 +10,7 @@
 #include "joystick/joystick.h"
 #include "logging/logging.h"
 #include "usb/usb.h"
+#include "usb/usb_descriptors.h"
 
 uint32_t reports_sent = 0;
 bool usb_bus_active = false;
@@ -102,13 +103,17 @@ void tud_resume_cb(void)
  * CDC Stuff
  */
 
-void send_cdc(uint8_t buf[], uint32_t count) {
+void send_cdc(char* buf, uint32_t count) {
 
-    for(uint32_t i=0; i<count; i++) {
-        tud_cdc_n_write_char(2, buf[i]);
+    if (tud_cdc_connected()) {
+
+        for (uint32_t i = 0; i < count; i++) {
+            tud_cdc_n_write_char(0, buf[i]);
+        }
     }
-
-    debug("send stuff to CDC");
+    else {
+        verbose("skipped CDC send");
+    }
 }
 
 

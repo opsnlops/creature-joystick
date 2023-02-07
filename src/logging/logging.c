@@ -142,6 +142,10 @@ portTASK_FUNCTION(log_queue_reader_task, pvParameters) {
     char levelBuffer[4];
     memset(&levelBuffer, '\0', 4);
 
+    // Output buffer for messages to live in
+    char* output_buffer = (char*)pvPortMalloc(sizeof(char) * LOGGING_MESSAGE_MAX_LENGTH + 1);
+    memset(output_buffer, '\0', LOGGING_MESSAGE_MAX_LENGTH + 1);
+
     for (EVER) {
         if (xQueueReceive(creature_log_message_queue_handle, &lm, (TickType_t) portMAX_DELAY) == pdPASS) {
             switch (lm.level) {
@@ -169,12 +173,15 @@ portTASK_FUNCTION(log_queue_reader_task, pvParameters) {
 
             // Format our message
             uint32_t time = to_ms_since_boot(get_absolute_time());
-            printf("[%lu]%s %s\n", time, levelBuffer, lm.message);
 
-            //send_cdc("hi", 2);
+            snprintf(output_buffer, 2048, "[%lu]%s %s\n", time, levelBuffer, lm.message);
 
-            // Wipe the buffer for next time
+            printf("%s", output_buffer);
+            send_cdc(output_buffer, strlen(output_buffer));
+
+            // Wipe the buffers for next time
             memset(&levelBuffer, '\0', 4);
+            memset(output_buffer, '\0', LOGGING_MESSAGE_MAX_LENGTH + 1);
 
         }
     }

@@ -33,7 +33,7 @@ void start_usb_tasks();
 
 static void send_hid_report();
 
-void send_cdc(uint8_t buf[], uint32_t count);
+void send_cdc(char* buf, uint32_t count);
 
 #ifdef __cplusplus
 }
