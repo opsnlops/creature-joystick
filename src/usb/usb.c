@@ -155,10 +155,10 @@ static void send_hid_report()
                 0x01,
                 joystick1.x.filtered_value + SCHAR_MIN,
                 joystick1.y.filtered_value + SCHAR_MIN,
-                0,
-                0,
                 joystick1.z.filtered_value + SCHAR_MIN,
+                0,
                 pot1.z.filtered_value + SCHAR_MIN,
+                0,
                 0,
                 0
                 );
@@ -173,10 +173,10 @@ static void send_hid_report()
                 0x01,
                 joystick2.x.filtered_value + SCHAR_MIN,
                 joystick2.y.filtered_value + SCHAR_MIN,
-                0,
-                0,
                 joystick2.z.filtered_value + SCHAR_MIN,
+                0,
                 pot2.z.filtered_value + SCHAR_MIN,
+                0,
                 0,
                 0
         );

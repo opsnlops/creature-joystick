@@ -57,9 +57,7 @@ int main(void)
     // Left Half
     joystick1 = create_3axis_joystick(1, 0, 2);
     joystick1.x.inverted = true;
-    joystick1.y.inverted = true;
     pot1 = create_pot(3);
-    pot1.z.inverted = true;
 
     register_axis(&joystick1.x);
     register_axis(&joystick1.y);
@@ -70,9 +68,7 @@ int main(void)
     // Right Half
     joystick2 = create_3axis_joystick(5, 4, 6);
     joystick2.x.inverted = true;
-    joystick2.y.inverted = true;
     pot2 = create_pot(7);
-    pot2.z.inverted = true;
 
     register_axis(&joystick2.x);
     register_axis(&joystick2.y);
