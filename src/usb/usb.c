@@ -19,11 +19,14 @@ uint32_t events_processed = 0;
 
 extern joystick joystick1;
 extern pot pot1;
+extern button button1;
 
 extern joystick joystick2;
 extern pot pot2;
+extern button button2;
 
 extern TaskHandle_t analog_reader_task_handler;
+extern TaskHandle_t button_reader_task_handler;
 
 StaticTask_t usb_device_task_handle;
 StaticTask_t hid_task_handle;
@@ -133,6 +136,7 @@ static void send_hid_report()
         if( eTaskGetState(analog_reader_task_handler) != eSuspended ) {
             debug("suspending reader task");
             vTaskSuspend(analog_reader_task_handler);
+            vTaskSuspend(button_reader_task_handler);
         }
 
         return;
@@ -142,6 +146,7 @@ static void send_hid_report()
     if(eTaskGetState(analog_reader_task_handler) == eSuspended ) {
         debug("resuming joystick reader");
         vTaskResume(analog_reader_task_handler);
+        vTaskResume(button_reader_task_handler);
     }
 
 #endif
@@ -149,6 +154,10 @@ static void send_hid_report()
     if ( tud_hid_n_ready(ITF_LEFT) ) {
 
         verbose("send_hid_report: left");
+
+        uint32_t buttons = 0x0;
+        if(button1.pressed)
+            buttons = 0x1;
 
         tud_hid_n_gamepad_report(
                 ITF_LEFT,
@@ -160,13 +169,17 @@ static void send_hid_report()
                 pot1.z.filtered_value + SCHAR_MIN,
                 0,
                 0,
-                0
+                buttons
                 );
     }
 
     if ( tud_hid_n_ready(ITF_RIGHT) ) {
 
         verbose("send_hid_report: right");
+
+        uint32_t buttons = 0x0;
+        if(button2.pressed)
+            buttons = 0x1;
 
         tud_hid_n_gamepad_report(
                 ITF_RIGHT,
@@ -178,7 +191,7 @@ static void send_hid_report()
                 pot2.z.filtered_value + SCHAR_MIN,
                 0,
                 0,
-                0
+                buttons
         );
     }
 
@@ -188,9 +201,9 @@ static void send_hid_report()
 // Invoked when sent REPORT successfully to host
 // Application can use this to send the next report
 // Note: For composite reports, report[0] is report ID
-void tud_hid_report_complete_cb(uint8_t instance, uint8_t const* report, uint8_t len)
+void tud_hid_report_complete_cb(uint8_t instance, uint8_t const* report, uint16_t len)
 {
-    verbose("tud_hid_report_complete_cb: instance: %d, report: %d, len: %d", instance, report[0], len);
+    verbose("tud_hid_report_complete_cb: instance: %u, report: %u, len: %u", instance, report[0], len);
 
     /*
      * This could be used to send more reports, like if we had a keyboard. We're using a polling

@@ -24,13 +24,16 @@
 
 joystick joystick1;
 pot pot1;
+button button1;
 
 joystick joystick2;
 pot pot2;
+button button2;
 
 char* pico_board_id;
 
 TaskHandle_t analog_reader_task_handler;
+TaskHandle_t button_reader_task_handler;
 
 void get_chip_id();
 
@@ -58,27 +61,31 @@ int main(void)
     joystick1 = create_3axis_joystick(1, 0, 2);
     joystick1.x.inverted = true;
     pot1 = create_pot(3);
+    button1 = create_button(BUTTON_7_PIN, false);
 
     register_axis(&joystick1.x);
     register_axis(&joystick1.y);
     register_axis(&joystick1.z);
     register_axis(&pot1.z);
+    register_button(&button1);
 
 
     // Right Half
     joystick2 = create_3axis_joystick(5, 4, 6);
     joystick2.x.inverted = true;
     pot2 = create_pot(7);
+    button2 = create_button(BUTTON_0_PIN, false);
 
     register_axis(&joystick2.x);
     register_axis(&joystick2.y);
     register_axis(&joystick2.z);
     register_axis(&pot2.z);
+    register_button(&button2);
 
     // And go!
     analog_reader_task_handler = start_analog_reader_task();
+    button_reader_task_handler = start_button_reader_task();
 
-    debug("starting task scheduler!");
     vTaskStartScheduler();
 
 }
