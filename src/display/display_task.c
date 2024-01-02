@@ -32,6 +32,7 @@ extern pot pot2;
 
 extern TaskHandle_t analog_reader_task_handler;
 
+extern volatile size_t xFreeHeapSpace;
 
 void display_start_task_running(volatile display_t *d) {
 
@@ -88,7 +89,7 @@ portTASK_FUNCTION(display_update_task, pvParameters) {
 
     sprintf(buffer[0], "Reports: %-5lu", reports_sent);
     sprintf(buffer[1], " Events: %-5lu",  events_processed);
-    sprintf(buffer[2], "    Mem: %d", xPortGetFreeHeapSize());
+    sprintf(buffer[2], "    Mem: %u", xFreeHeapSpace);
     sprintf(buffer[3], "Mounted: %s   Bus: %s",
                             device_mounted ? "Yes" : "No",
                             usb_bus_active ? "Yes" : "No");

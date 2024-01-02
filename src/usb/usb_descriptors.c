@@ -23,32 +23,31 @@
 // Device Descriptors
 //--------------------------------------------------------------------+
 tusb_desc_device_t const desc_device =
-        {
-                .bLength            = sizeof(tusb_desc_device_t),
-                .bDescriptorType    = TUSB_DESC_DEVICE,
-                .bcdUSB             = USB_BCD,
-                .bDeviceClass       = TUSB_CLASS_MISC,
-                .bDeviceSubClass    = MISC_SUBCLASS_COMMON,
-                .bDeviceProtocol    = MISC_PROTOCOL_IAD,
-                .bMaxPacketSize0    = CFG_TUD_ENDPOINT0_SIZE,
+    {
+            .bLength            = sizeof(tusb_desc_device_t),
+            .bDescriptorType    = TUSB_DESC_DEVICE,
+            .bcdUSB             = USB_BCD,
+            .bDeviceClass       = TUSB_CLASS_MISC,
+            .bDeviceSubClass    = MISC_SUBCLASS_COMMON,
+            .bDeviceProtocol    = MISC_PROTOCOL_IAD,
+            .bMaxPacketSize0    = CFG_TUD_ENDPOINT0_SIZE,
 
-                .idVendor           = USB_VID,
-                .idProduct          = USB_PID,
-                .bcdDevice          = 0x0120,       // Version number
+            .idVendor           = USB_VID,
+            .idProduct          = USB_PID,
+            .bcdDevice          = 0x0130,       // Version number
 
-                .iManufacturer      = USB_MANUFACTURER_INDEX,
-                .iProduct           = USB_PRODUCT_INDEX,
-                .iSerialNumber      = USB_SERIAL_NUMBER_INDEX,
+            .iManufacturer      = USB_MANUFACTURER_INDEX,
+            .iProduct           = USB_PRODUCT_INDEX,
+            .iSerialNumber      = USB_SERIAL_NUMBER_INDEX,
 
-                .bNumConfigurations = 0x01
-        };
+            .bNumConfigurations = 0x01
+    };
 
 // Invoked when received GET DEVICE DESCRIPTOR
 // Application return pointer to descriptor
 uint8_t const *tud_descriptor_device_cb(void) {
 
     debug("tud_descriptor_device_cb");
-
     return (uint8_t const *) &desc_device;
 }
 
@@ -57,29 +56,18 @@ uint8_t const *tud_descriptor_device_cb(void) {
 //--------------------------------------------------------------------+
 
 // We've got two gamepads, so they're the same
-uint8_t const desc_hid_report_left[] =
-        {
-                TUD_HID_REPORT_DESC_ACW_JOYSTICK (HID_REPORT_ID(REPORT_ID_GAMEPAD))
-        };
+uint8_t const desc_hid_joystick[] =
+{
+        TUD_HID_REPORT_DESC_ACW_JOYSTICK (HID_REPORT_ID(REPORT_ID_GAMEPAD))
+};
 
-uint8_t const desc_hid_report_right[] =
-        {
-                TUD_HID_REPORT_DESC_ACW_JOYSTICK (HID_REPORT_ID(REPORT_ID_GAMEPAD))
-        };
 
 // Invoked when received GET HID REPORT DESCRIPTOR
 // Application return pointer to descriptor
 // Descriptor contents must exist long enough for transfer to complete
 uint8_t const *tud_hid_descriptor_report_cb(uint8_t interface) {
     debug("tud_hid_descriptor_report_cb(): interface: %d", interface);
-
-    if (interface == 0) {
-        return desc_hid_report_left;
-    } else if (interface == 1) {
-        return desc_hid_report_right;
-    }
-
-    return NULL;
+    return desc_hid_joystick;
 }
 
 //--------------------------------------------------------------------+
@@ -87,84 +75,36 @@ uint8_t const *tud_hid_descriptor_report_cb(uint8_t interface) {
 //--------------------------------------------------------------------+
 
 enum {
-    ITF_NUM_HID_LEFT = 0,
-    ITF_NUM_HID_RIGHT,
+    ITF_NUM_HID = 0,
     ITF_NUM_CDC,
     ITF_NUM_CDC_DATA,
     ITF_NUM_TOTAL
 };
 
 // Total number of devices
-#define  CONFIG_TOTAL_LEN  (TUD_CONFIG_DESC_LEN + TUD_HID_DESC_LEN + TUD_HID_DESC_LEN + (CFG_TUD_CDC * TUD_CDC_DESC_LEN))
+#define  CONFIG_TOTAL_LEN  (TUD_CONFIG_DESC_LEN + TUD_HID_DESC_LEN + (CFG_TUD_CDC * TUD_CDC_DESC_LEN))
+
+//#define  CONFIG_TOTAL_LEN  (TUD_CONFIG_DESC_LEN + TUD_HID_DESC_LEN)
 
 #define EPNUM_HID_LEFT      0x81
-#define EPNUM_HID_RIGHT     0x82
 #define EPNUM_CDC_NOTIF     0x83
 #define EPNUM_CDC_OUT       0x02
 #define EPNUM_CDC_IN        0x84
 
 uint8_t const desc_configuration[] =
-        {
-                // Config number, interface count, string index, total length, attribute, power in mA
-                TUD_CONFIG_DESCRIPTOR(1, ITF_NUM_TOTAL, 0, CONFIG_TOTAL_LEN, 0x00, 200),
+    {
+            // Config number, interface count, string index, total length, attribute, power in mA
+            TUD_CONFIG_DESCRIPTOR(1, ITF_NUM_TOTAL, 0, CONFIG_TOTAL_LEN, 0x00, 200),
 
-                // Interface number, string index, protocol, report descriptor len, EP In address, size & polling interval
-                TUD_HID_DESCRIPTOR(ITF_NUM_HID_LEFT, 4, HID_ITF_PROTOCOL_NONE, sizeof(desc_hid_report_left),
-                                   EPNUM_HID_LEFT, CFG_TUD_HID_EP_BUFSIZE, POLLING_INTERVAL),
-                TUD_HID_DESCRIPTOR(ITF_NUM_HID_RIGHT, 5, HID_ITF_PROTOCOL_NONE, sizeof(desc_hid_report_right),
-                                   EPNUM_HID_RIGHT, CFG_TUD_HID_EP_BUFSIZE, POLLING_INTERVAL),
+            // Interface number, string index, protocol, report descriptor len, EP In address, size & polling interval
+            TUD_HID_DESCRIPTOR(ITF_NUM_HID, 4, HID_ITF_PROTOCOL_NONE, sizeof(desc_hid_joystick),
+                               EPNUM_HID_LEFT, CFG_TUD_HID_EP_BUFSIZE, POLLING_INTERVAL),
 
-                TUD_CDC_DESCRIPTOR(ITF_NUM_CDC, 6, EPNUM_CDC_NOTIF, 8, EPNUM_CDC_OUT, EPNUM_CDC_IN, 64)
+            TUD_CDC_DESCRIPTOR(ITF_NUM_CDC, 5, EPNUM_CDC_NOTIF, 8, EPNUM_CDC_OUT, EPNUM_CDC_IN, 64)
 
-        };
+    };
 
-#if TUD_OPT_HIGH_SPEED
-// Per USB specs: high speed capable device must report device_qualifier and other_speed_configuration
 
-// other speed configuration
-uint8_t desc_other_speed_config[CONFIG_TOTAL_LEN];
-
-// device qualifier is mostly similar to device descriptor since we don't change configuration based on speed
-tusb_desc_device_qualifier_t const desc_device_qualifier =
-{
-  .bLength            = sizeof(tusb_desc_device_qualifier_t),
-  .bDescriptorType    = TUSB_DESC_DEVICE_QUALIFIER,
-  .bcdUSB             = USB_BCD,
-
-  .bDeviceClass       = 0x00,
-  .bDeviceSubClass    = 0x00,
-  .bDeviceProtocol    = 0x00,
-
-  .bMaxPacketSize0    = CFG_TUD_ENDPOINT0_SIZE,
-  .bNumConfigurations = 0x01,
-  .bReserved          = 0x00
-};
-
-// Invoked when received GET DEVICE QUALIFIER DESCRIPTOR request
-// Application return pointer to descriptor, whose contents must exist long enough for transfer to complete.
-// device_qualifier descriptor describes information about a high-speed capable device that would
-// change if the device were operating at the other speed. If not highspeed capable stall this request.
-uint8_t const* tud_descriptor_device_qualifier_cb(void)
-{
-  return (uint8_t const*) &desc_device_qualifier;
-}
-
-// Invoked when received GET OTHER SEED CONFIGURATION DESCRIPTOR request
-// Application return pointer to descriptor, whose contents must exist long enough for transfer to complete
-// Configuration descriptor in the other speed e.g if high speed then this is for full speed and vice versa
-uint8_t const* tud_descriptor_other_speed_configuration_cb(uint8_t index)
-{
-  (void) index; // for multiple configurations
-
-  // other speed config is basically configuration with type = OHER_SPEED_CONFIG
-  memcpy(desc_other_speed_config, desc_configuration, CONFIG_TOTAL_LEN);
-  desc_other_speed_config[1] = TUSB_DESC_OTHER_SPEED_CONFIG;
-
-  // this example use the same configuration for both high and full speed mode
-  return desc_other_speed_config;
-}
-
-#endif // highspeed
 
 // Invoked when received GET CONFIGURATION DESCRIPTOR
 // Application return pointer to descriptor
@@ -182,15 +122,14 @@ uint8_t const *tud_descriptor_configuration_cb(uint8_t index) {
 
 // array of pointer to string descriptors
 char const *string_desc_arr[] =
-        {
-                (const char[]) {0x09, 0x04}, // 0: is supported language is English (0x0409)
-                "April's Creature Workshop",                     // 1: Manufacturer
-                "Joystick",              // 2: Product
-                NULL,                               // 3: Serials, should use chip ID
-                "Left Half",
-                "Right Half",
-                "Debug Console"
-        };
+{
+        (const char[]) {0x09, 0x04},        // 0: is supported language is English (0x0409)
+        "April's Creature Workshop",        // 1: Manufacturer
+        "Joystick",                         // 2: Product
+        NULL,                               // 3: Serials, should use chip ID
+        "Knobs and Buttons",                // 4: Description
+        "Debug Console"
+};
 
 static uint16_t _desc_str[32];
 

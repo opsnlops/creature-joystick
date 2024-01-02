@@ -38,6 +38,15 @@ TaskHandle_t button_reader_task_handler;
 void get_chip_id();
 
 
+/**
+ * According to the docs, the USB tasks should only be started after the FreeRTOS
+ * scheduler is up and running!
+ *
+ * @param pvParameters
+ */
+portTASK_FUNCTION_PROTO(startup_task, pvParameters);
+
+
 volatile size_t xFreeHeapSpace;
 
 int main(void)
@@ -53,8 +62,6 @@ int main(void)
 
     board_init();
     init_reader();
-
-    start_usb_tasks();
 
     // Set up the display
     volatile display_t *d = display_create();
@@ -89,6 +96,16 @@ int main(void)
     analog_reader_task_handler = start_analog_reader_task();
     button_reader_task_handler = start_button_reader_task();
 
+
+    // Queue up the startup task for right after the scheduler starts
+    TaskHandle_t startup_task_handle;
+    xTaskCreate(startup_task,
+                "startup_task",
+                configMINIMAL_STACK_SIZE,
+                NULL,
+                1,
+                &startup_task_handle);
+
     vTaskStartScheduler();
 
 }
@@ -102,5 +119,25 @@ void get_chip_id() {
     pico_get_unique_board_id_string(pico_board_id, 2 * PICO_UNIQUE_BOARD_ID_SIZE_BYTES + 1);
 
     debug("board id: %s", pico_board_id);
+
+}
+
+
+portTASK_FUNCTION(startup_task, pvParameters) {
+
+    // These are in a task because the docs say:
+
+    /*
+        init device stack on configured roothub port
+        This should be called after scheduler/kernel is started.
+        Otherwise, it could cause kernel issue since USB IRQ handler does use RTOS queue API.
+     */
+
+    usb_init();
+    usb_start();
+
+
+    // Bye!
+    vTaskDelete(NULL);
 
 }

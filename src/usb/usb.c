@@ -6,6 +6,7 @@
 
 #include <FreeRTOS.h>
 #include <task.h>
+#include <timers.h>
 
 #include "joystick/joystick.h"
 #include "logging/logging.h"
@@ -28,36 +29,74 @@ extern button button2;
 extern TaskHandle_t analog_reader_task_handler;
 extern TaskHandle_t button_reader_task_handler;
 
-TaskHandle_t usb_device_task_handle;
-TaskHandle_t hid_task_handle;
-
 
 enum {
-    ITF_LEFT = 0,
-    ITF_RIGHT = 1
+    JOYSTICK = 0
 };
 
-void start_usb_tasks() {
 
-    debug("starting up USB tasks");
+void usb_init() {
 
-    // Create a task for tinyusb device stack
-    xTaskCreate(usb_device_task,
-                "usbd",
-                USBD_STACK_SIZE,
-                NULL,
-                1,
-                &usb_device_task_handle);
+    // init TinyUSB
+    tusb_init();
 
-    // Create HID task
-    xTaskCreate(hid_task,
-                "hid",
-                HID_STACK_SIZE,
-                NULL,
-                1,
-                &hid_task_handle);
+    // init device stack on configured roothub port
+    // This should be called after scheduler/kernel is started.
+    // Otherwise, it could cause kernel issue since USB IRQ handler does use RTOS queue API.
+    tud_init(BOARD_TUD_RHPORT);
 
 }
+
+void usb_start() {
+
+    TimerHandle_t usbDeviceTimer = xTimerCreate(
+            "usbDeviceTimer",              // Timer name
+            pdMS_TO_TICKS(1),            // Every millisecond
+            pdTRUE,                          // Auto-reload
+            (void *) 0,                        // Timer ID (not used here)
+            usbDeviceTimerCallback         // Callback function
+    );
+
+    TimerHandle_t hidTaskTimer = xTimerCreate(
+            "hidTaskTimer",              // Timer name
+            pdMS_TO_TICKS(1),            // Every millisecond
+            pdTRUE,                          // Auto-reload
+            (void *) 0,                        // Timer ID (not used here)
+            usb_hid_task_callback         // Callback function
+    );
+
+    // Something's gone really wrong if we can't create the timer
+    configASSERT (usbDeviceTimer != NULL);
+
+    // Start timers
+    xTimerStart(usbDeviceTimer, 0);
+    xTimerStart(hidTaskTimer, 0);
+
+    info("USB service timers started");
+
+}
+
+
+
+void usbDeviceTimerCallback(TimerHandle_t xTimer) {
+    tud_task();
+}
+
+void usb_hid_task_callback(TimerHandle_t xTimer) {
+
+    // Remote wakeup
+    if (tud_suspended()) {
+        // Wake up host if we are in suspend mode
+        // and REMOTE_WAKEUP feature is enabled by host
+        tud_remote_wakeup();
+    }
+
+    send_hid_report();
+    events_processed++;
+}
+
+
+
 
 
 //--------------------------------------------------------------------+
@@ -120,13 +159,41 @@ void cdc_send(char* buf) {
 // USB HID
 //--------------------------------------------------------------------+
 
+bool hid_creature_joystick_report(uint8_t instance, uint8_t report_id,
+                                  int8_t x,  int8_t y, int8_t z,
+                                  int8_t rz, int8_t rx, int8_t ry,
+                                  uint8_t left_dial, uint8_t right_dial,
+                                  uint32_t buttons) {
+    creature_joystick_report_t report =
+            {
+                    .x       = x,
+                    .y       = y,
+                    .z       = z,
+                    .rz      = rz,
+                    .rx      = rx,
+                    .ry      = ry,
+                    .left_dial = left_dial,
+                    .right_dial = right_dial,
+            };
+
+
+    debug("instance: %d, report: %d %d %d %d %d %d", instance, report.x, report.y, report.z, report.rz, report.rx, report.ry);
+
+    return tud_hid_n_report(instance, report_id, &report, sizeof(report));
+}
+
+
 static void send_hid_report()
 {
 
+    // Skip if we're not ready yet
+    if ( !tud_hid_ready() ) return;
+
+
 #ifdef SUSPEND_READER_WHEN_NO_USB
 
-    // Skip if none of the HIDs are ready
-    if ( !tud_hid_n_ready(ITF_LEFT) && !tud_hid_n_ready(ITF_RIGHT)) {
+    // Skip if the HID isn't ready
+    if ( !tud_hid_n_ready(JOYSTICK)) {
 
         // Before we go, if the reader is running, stop it.
         if( eTaskGetState(analog_reader_task_handler) != eSuspended ) {
@@ -147,49 +214,24 @@ static void send_hid_report()
 
 #endif
 
-    if ( tud_hid_n_ready(ITF_LEFT) ) {
+    verbose("send_hid_report");
+    uint32_t buttons = 0x0;
+    if(button1.pressed)
+        buttons = 0x1;
 
-        verbose("send_hid_report: left");
-
-        uint32_t buttons = 0x0;
-        if(button1.pressed)
-            buttons = 0x1;
-
-        tud_hid_n_gamepad_report(
-                ITF_LEFT,
-                0x01,
-                joystick1.x.filtered_value + SCHAR_MIN,
-                joystick1.y.filtered_value + SCHAR_MIN,
-                joystick1.z.filtered_value + SCHAR_MIN,
-                0,
-                pot1.z.filtered_value + SCHAR_MIN,
-                0,
-                0,
-                buttons
-                );
-    }
-
-    if ( tud_hid_n_ready(ITF_RIGHT) ) {
-
-        verbose("send_hid_report: right");
-
-        uint32_t buttons = 0x0;
-        if(button2.pressed)
-            buttons = 0x1;
-
-        tud_hid_n_gamepad_report(
-                ITF_RIGHT,
-                0x01,
-                joystick2.x.filtered_value + SCHAR_MIN,
-                joystick2.y.filtered_value + SCHAR_MIN,
-                joystick2.z.filtered_value + SCHAR_MIN,
-                0,
-                pot2.z.filtered_value + SCHAR_MIN,
-                0,
-                0,
-                buttons
-        );
-    }
+    hid_creature_joystick_report(
+            JOYSTICK,
+            0x01,
+            joystick1.x.filtered_value + SCHAR_MIN,
+            joystick1.y.filtered_value + SCHAR_MIN,
+            joystick1.z.filtered_value + SCHAR_MIN,
+            joystick2.x.filtered_value + SCHAR_MIN,
+            joystick2.y.filtered_value + SCHAR_MIN,
+            joystick2.z.filtered_value + SCHAR_MIN,
+            pot1.z.filtered_value + SCHAR_MIN,
+            pot2.z.filtered_value + SCHAR_MIN,
+            buttons
+            );
 
     reports_sent++;
 }
@@ -200,18 +242,6 @@ static void send_hid_report()
 void tud_hid_report_complete_cb(uint8_t instance, uint8_t const* report, uint16_t len)
 {
     verbose("tud_hid_report_complete_cb: instance: %u, report: %u, len: %u", instance, report[0], len);
-
-    /*
-     * This could be used to send more reports, like if we had a keyboard. We're using a polling
-     * joystick, so it doesn't really matter
-     *
-        uint8_t next_report_id = report[0] + 1;
-
-        if (next_report_id < REPORT_ID_COUNT)
-        {
-           send_hid_report(next_report_id, board_button_read());
-        }
-     */
 }
 
 // Invoked when received GET_REPORT control request
@@ -226,6 +256,8 @@ uint16_t tud_hid_get_report_cb(uint8_t instance, uint8_t report_id, hid_report_t
     (void) buffer;
     (void) reqlen;
 
+    debug("get report: %d, %d, %d, %d", instance, report_id, report_type, reqlen);
+
     return 0;
 }
 
@@ -234,56 +266,5 @@ uint16_t tud_hid_get_report_cb(uint8_t instance, uint8_t report_id, hid_report_t
 void tud_hid_set_report_cb(uint8_t instance, uint8_t report_id, hid_report_type_t report_type, uint8_t const* buffer, uint16_t bufsize)
 {
     (void) instance;
-
     verbose("report: %d", report_type);
-
-    /*
-    if (report_type == HID_REPORT_TYPE_OUTPUT)
-    {
-
-    }
-     */
-}
-
-
-_Noreturn void hid_task(void *param) {
-    (void) param;
-
-    for (EVER) {
-
-        // Poll every 10ms
-        vTaskDelay(pdMS_TO_TICKS(POLLING_INTERVAL));
-
-        // Remote wakeup
-        if (tud_suspended()) {
-            // Wake up host if we are in suspend mode
-            // and REMOTE_WAKEUP feature is enabled by host
-            tud_remote_wakeup();
-        }
-
-        send_hid_report();
-
-        events_processed++;
-
-    }
-}
-
-
-// USB Device Driver task
-// This top level thread process all usb events and invoke callbacks
-_Noreturn void usb_device_task(void *param) {
-    (void) param;
-
-    tusb_init();
-
-    // init device stack on configured roothub port
-    // This should be called after scheduler/kernel is started.
-    // Otherwise, it could cause kernel issue since USB IRQ handler does use RTOS queue API.
-    tud_init(BOARD_TUD_RHPORT);
-
-    // RTOS forever loop
-    for (EVER) {
-        // put this thread to waiting state until there is new events
-        tud_task();
-    }
 }
