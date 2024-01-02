@@ -12,7 +12,7 @@
 #define MAX_NUMBER_OF_BUTTONS       8
 
 // If this is defined, suspend the reader when there's no USB connection
-#define SUSPEND_READER_WHEN_NO_USB  1
+#define SUSPEND_READER_WHEN_NO_USB  0
 
 // How many milliseconds should we treat each frame?
 #define POLLING_INTERVAL            10
@@ -31,7 +31,7 @@
 /*
  * Logging Config
  */
-#define LOGGING_LEVEL               LOG_LEVEL_DEBUG
+#define LOGGING_LEVEL               LOG_LEVEL_VERBOSE
 #define LOGGING_QUEUE_LENGTH        40
 #define LOGGING_MESSAGE_MAX_LENGTH  256
 

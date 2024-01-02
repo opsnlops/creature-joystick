@@ -1,27 +1,4 @@
-/*
- * The MIT License (MIT)
- *
- * Copyright (c) 2019 Ha Thach (tinyusb.org)
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- *
- */
+
 
 #include "controller-config.h"
 
@@ -57,7 +34,7 @@ tusb_desc_device_t const desc_device =
 
                 .idVendor           = USB_VID,
                 .idProduct          = USB_PID,
-                .bcdDevice          = 0x0110,       // Version number
+                .bcdDevice          = 0x0120,       // Version number
 
                 .iManufacturer      = USB_MANUFACTURER_INDEX,
                 .iProduct           = USB_PRODUCT_INDEX,
@@ -82,12 +59,12 @@ uint8_t const *tud_descriptor_device_cb(void) {
 // We've got two gamepads, so they're the same
 uint8_t const desc_hid_report_left[] =
         {
-                TUD_HID_REPORT_DESC_GAMEPAD (HID_REPORT_ID(REPORT_ID_GAMEPAD))
+                TUD_HID_REPORT_DESC_ACW_JOYSTICK (HID_REPORT_ID(REPORT_ID_GAMEPAD))
         };
 
 uint8_t const desc_hid_report_right[] =
         {
-                TUD_HID_REPORT_DESC_GAMEPAD (HID_REPORT_ID(REPORT_ID_GAMEPAD))
+                TUD_HID_REPORT_DESC_ACW_JOYSTICK (HID_REPORT_ID(REPORT_ID_GAMEPAD))
         };
 
 // Invoked when received GET HID REPORT DESCRIPTOR
@@ -212,7 +189,7 @@ char const *string_desc_arr[] =
                 NULL,                               // 3: Serials, should use chip ID
                 "Left Half",
                 "Right Half",
-                "Serial Debug"
+                "Debug Console"
         };
 
 static uint16_t _desc_str[32];
@@ -252,7 +229,7 @@ uint16_t const *tud_descriptor_string_cb(uint8_t index, uint16_t langid) {
         // Note: the 0xEE index string is a Microsoft OS 1.0 Descriptors.
         // https://docs.microsoft.com/en-us/windows-hardware/drivers/usbcon/microsoft-defined-usb-descriptors
 
-        if (!(index < sizeof(string_desc_arr) / sizeof(string_desc_arr[0]))) return NULL;
+        if (index >= sizeof(string_desc_arr) / sizeof(string_desc_arr[0])) return NULL;
 
         const char *str = string_desc_arr[index];
 

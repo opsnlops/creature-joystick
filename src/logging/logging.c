@@ -17,6 +17,22 @@ QueueHandle_t creature_log_message_queue_handle;
 bool logging_queue_exists = false;
 
 
+/**
+ * Write a line to the CDC port
+ *
+ * @param line the line to write
+ */
+void write_to_cdc(char* line) {
+
+    // Use the onboard LED as a "TX" light
+    //gpio_put(CDC_ACTIVE_PIN, true);
+
+    cdc_send(line);
+
+    //gpio_put(CDC_ACTIVE_PIN, false);
+
+}
+
 void logger_init() {
     creature_log_message_queue_handle = xQueueCreate(LOGGING_QUEUE_LENGTH, sizeof(struct LogMessage));
     vQueueAddToRegistry(creature_log_message_queue_handle, "log_message_queue");
@@ -174,10 +190,10 @@ portTASK_FUNCTION(log_queue_reader_task, pvParameters) {
             // Format our message
             uint32_t time = to_ms_since_boot(get_absolute_time());
 
-            snprintf(output_buffer, 2048, "[%lu]%s %s\n", time, levelBuffer, lm.message);
+            snprintf(output_buffer, 2048, "[%lu]%s %s\n\r", time, levelBuffer, lm.message);
 
             printf("%s", output_buffer);
-            send_cdc(output_buffer, strlen(output_buffer));
+            cdc_send(output_buffer);
 
             // Wipe the buffers for next time
             memset(&levelBuffer, '\0', 4);

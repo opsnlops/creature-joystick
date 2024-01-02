@@ -37,6 +37,9 @@ TaskHandle_t button_reader_task_handler;
 
 void get_chip_id();
 
+
+volatile size_t xFreeHeapSpace;
+
 int main(void)
 {
     // All the SDK to bring up the stdio stuff, so we can write to the serial port

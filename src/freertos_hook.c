@@ -31,6 +31,9 @@
 #include "common/tusb_common.h"
 
 
+// Keep track of the amount of free heap space
+extern volatile size_t xFreeHeapSpace;
+
 void vApplicationMallocFailedHook(void)
 {
     taskDISABLE_INTERRUPTS();
@@ -93,6 +96,20 @@ void vApplicationGetTimerTaskMemory( StaticTask_t **ppxTimerTaskTCBBuffer, Stack
       configTIMER_TASK_STACK_DEPTH is specified in words, not bytes. */
     *pulTimerTaskStackSize = configTIMER_TASK_STACK_DEPTH;
 }
+
+
+void vApplicationIdleHook(void) {
+
+    // Record the free heap space for the stats handler
+    xFreeHeapSpace = xPortGetFreeHeapSize();
+
+}
+
+void vApplicationTickHook(void) {
+    // Nothing for now
+
+}
+
 
 #if CFG_TUSB_MCU == OPT_MCU_RX63X | CFG_TUSB_MCU == OPT_MCU_RX65X
 #include "iodefine.h"

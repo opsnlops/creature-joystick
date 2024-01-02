@@ -28,10 +28,9 @@ extern button button2;
 extern TaskHandle_t analog_reader_task_handler;
 extern TaskHandle_t button_reader_task_handler;
 
-StaticTask_t usb_device_task_handle;
-StaticTask_t hid_task_handle;
-StackType_t usb_device_stack[USBD_STACK_SIZE];
-StackType_t hid_stack[HID_STACK_SIZE];
+TaskHandle_t usb_device_task_handle;
+TaskHandle_t hid_task_handle;
+
 
 enum {
     ITF_LEFT = 0,
@@ -43,21 +42,19 @@ void start_usb_tasks() {
     debug("starting up USB tasks");
 
     // Create a task for tinyusb device stack
-    xTaskCreateStatic(usb_device_task,
+    xTaskCreate(usb_device_task,
                 "usbd",
                 USBD_STACK_SIZE,
                 NULL,
                 1,
-                usb_device_stack,
                 &usb_device_task_handle);
 
     // Create HID task
-    xTaskCreateStatic(hid_task,
+    xTaskCreate(hid_task,
                 "hid",
                 HID_STACK_SIZE,
                 NULL,
                 1,
-                hid_stack,
                 &hid_task_handle);
 
 }
@@ -106,16 +103,15 @@ void tud_resume_cb(void)
  * CDC Stuff
  */
 
-void send_cdc(char* buf, uint32_t count) {
+void cdc_send(char* buf) {
 
     if (tud_cdc_connected()) {
 
-        for (uint32_t i = 0; i < count; i++) {
-            tud_cdc_n_write_char(0, buf[i]);
-        }
+        tud_cdc_n_write_str(0, buf);
+        tud_cdc_n_write_flush(0);
     }
     else {
-        verbose("skipped CDC send");
+        info("skipped CDC send");
     }
 }
 

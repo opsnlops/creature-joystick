@@ -29,11 +29,11 @@ portTASK_FUNCTION_PROTO(usb_device_task, pvParameters);
 _Noreturn portTASK_FUNCTION_PROTO(hid_task, pvParameters);
 
 void start_usb_tasks();
-
+void write_to_cdc(char* line);
 
 static void send_hid_report();
 
-void send_cdc(char* buf, uint32_t count);
+void cdc_send(char* buf);
 
 #ifdef __cplusplus
 }
