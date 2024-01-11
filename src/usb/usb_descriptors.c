@@ -127,8 +127,7 @@ char const *string_desc_arr[] =
         "April's Creature Workshop",        // 1: Manufacturer
         "Joystick",                         // 2: Product
         NULL,                               // 3: Serials, should use chip ID
-        "Knobs and Buttons",                // 4: Description
-        "Debug Console"
+        "Knobs and Buttons"                 // 4: Description
 };
 
 static uint16_t _desc_str[32];

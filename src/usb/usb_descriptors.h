@@ -46,7 +46,7 @@ extern "C"
     HID_USAGE          ( HID_USAGE_DESKTOP_RY                   ) ,\
     HID_USAGE          ( HID_USAGE_DESKTOP_RZ                   ) ,\
     HID_USAGE          ( HID_USAGE_DESKTOP_DIAL                 ) ,\
-    HID_USAGE          ( HID_USAGE_DESKTOP_DIAL                 ) ,\
+    HID_USAGE          ( HID_USAGE_DESKTOP_WHEEL                ) ,\
     HID_LOGICAL_MIN    ( 0x81                                   ) ,\
     HID_LOGICAL_MAX    ( 0x7f                                   ) ,\
     HID_REPORT_COUNT   ( 8                                      ) ,\
