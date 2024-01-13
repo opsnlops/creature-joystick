@@ -14,6 +14,7 @@ set(CMAKE_CXX_STANDARD 20)
 # Initialize the SDK
 pico_sdk_init()
 
+
 add_executable(joystick)
 
 target_sources(joystick PUBLIC
@@ -66,3 +67,48 @@ pico_add_extra_outputs(joystick)
 # Enable the console over UART (which is the picoprobe!)
 pico_enable_stdio_usb(joystick 0)
 pico_enable_stdio_uart(joystick 1)
+
+
+
+#
+# A small app to debug the ADC
+#
+add_executable(adc-debugger)
+
+target_sources(adc-debugger PUBLIC
+        src/freertos_hook.c
+        src/joystick/adc.c
+        src/joystick/adc.h
+        src/joystick/filter.c
+        src/joystick/filter.h
+        src/joystick/joystick.c
+        src/joystick/joystick.h
+        src/logging/logging.c
+        src/logging/logging.h
+        src/adc-debugger/FreeRTOSConfig.h
+        src/adc-debugger/main.c
+        src/adc-debugger/tusb_config.h
+        src/adc-debugger/usb.c
+        src/adc-debugger/usb.h
+        src/adc-debugger/usb_descriptors.c
+        src/adc-debugger/usb_descriptors.h
+)
+
+target_include_directories(adc-debugger PUBLIC
+        src/adc-debugger
+        src/)
+
+target_link_libraries(adc-debugger PUBLIC
+        FreeRTOS-Kernel
+        FreeRTOS-Kernel-Heap4
+        pico_stdlib
+        pico_unique_id
+        hardware_spi
+        tinyusb_device
+        tinyusb_board
+)
+
+pico_add_extra_outputs(adc-debugger)
+
+pico_enable_stdio_usb(adc-debugger 0)
+pico_enable_stdio_uart(adc-debugger 1)
