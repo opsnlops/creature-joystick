@@ -17,23 +17,34 @@ pico_sdk_init()
 add_executable(joystick)
 
 target_sources(joystick PUBLIC
-        ${CMAKE_CURRENT_LIST_DIR}/src/main.c
-        ${CMAKE_CURRENT_LIST_DIR}/src/freertos_hook.c
-        ${CMAKE_CURRENT_LIST_DIR}/src/display/display.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/src/display/display_task.c
-        ${CMAKE_CURRENT_LIST_DIR}/src/display/display_wrapper.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/src/joystick/adc.c
-        ${CMAKE_CURRENT_LIST_DIR}/src/joystick/filter.c
-        ${CMAKE_CURRENT_LIST_DIR}/src/joystick/joystick.c
-        ${CMAKE_CURRENT_LIST_DIR}/src/logging/logging.c
-        ${CMAKE_CURRENT_LIST_DIR}/src/usb/usb.c
-        ${CMAKE_CURRENT_LIST_DIR}/src/usb/usb_descriptors.c
+        src/main.c
+        src/controller-config.h
+        src/tusb_config.h
+        src/freertos_hook.c
+        src/display/display.cpp
+        src/display/display.h
+        src/display/display_task.c
+        src/display/display_task.h
+        src/display/display_wrapper.cpp
+        src/display/display_wrapper.h
+        src/joystick/adc.c
+        src/joystick/adc.h
+        src/joystick/filter.c
+        src/joystick/filter.h
+        src/joystick/joystick.c
+        src/joystick/joystick.h
+        src/logging/logging.c
+        src/logging/logging.h
+        src/usb/usb.c
+        src/usb/usb.h
+        src/usb/usb_descriptors.c
+        src/usb/usb_descriptors.h
         )
 
 # Make sure TinyUSB can find tusb_config.h
 target_include_directories(joystick PUBLIC
         .
-        ${CMAKE_CURRENT_LIST_DIR}/src)
+        src/)
 
 add_subdirectory(pico-ssd1306)
 
