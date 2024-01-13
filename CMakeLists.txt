@@ -86,7 +86,7 @@ target_sources(adc-debugger PUBLIC
         src/logging/logging.c
         src/logging/logging.h
         src/adc-debugger/FreeRTOSConfig.h
-        src/adc-debugger/main.c
+        src/adc-debugger/adc-debugger.c
         src/adc-debugger/tusb_config.h
         src/adc-debugger/usb.c
         src/adc-debugger/usb.h

@@ -12,10 +12,10 @@
 #define MAX_NUMBER_OF_BUTTONS       8
 
 // If this is defined, suspend the reader when there's no USB connection
-#define SUSPEND_READER_WHEN_NO_USB  0
+//#define SUSPEND_READER_WHEN_NO_USB  0
 
 // How many milliseconds should we treat each frame?
-#define POLLING_INTERVAL            10
+#define POLLING_INTERVAL            0
 
 
 /*

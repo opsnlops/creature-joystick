@@ -24,13 +24,14 @@ joystick joystick1;
 pot pot1;
 button button1;
 
-joystick joystick2;
-pot pot2;
-button button2;
-
 char* pico_board_id;
 
+TaskHandle_t analog_reader_task_handler;
+TaskHandle_t button_reader_task_handler;
 
+TaskHandle_t adc_debugger_task_handler;
+
+portTASK_FUNCTION_PROTO(adc_debugger_task, pvParameters);
 void get_chip_id();
 
 
@@ -60,29 +61,21 @@ int main(void)
     init_reader();
 
     // Left Half
-    joystick1 = create_3axis_joystick(1, 0, 2);
+    joystick1 = create_2axis_joystick(1, 0);
     joystick1.x.inverted = true;
     pot1 = create_pot(3);
     button1 = create_button(BUTTON_7_PIN, false);
 
     register_axis(&joystick1.x);
     register_axis(&joystick1.y);
-    register_axis(&joystick1.z);
     register_axis(&pot1.z);
     register_button(&button1);
 
 
-    // Right Half
-    joystick2 = create_3axis_joystick(5, 4, 6);
-    joystick2.x.inverted = true;
-    pot2 = create_pot(7);
-    button2 = create_button(BUTTON_0_PIN, false);
+    // And go!
+    analog_reader_task_handler = start_analog_reader_task();
+    button_reader_task_handler = start_button_reader_task();
 
-    register_axis(&joystick2.x);
-    register_axis(&joystick2.y);
-    register_axis(&joystick2.z);
-    register_axis(&pot2.z);
-    register_button(&button2);
 
     // Queue up the startup task for right after the scheduler starts
     TaskHandle_t startup_task_handle;
@@ -92,6 +85,14 @@ int main(void)
                 NULL,
                 1,
                 &startup_task_handle);
+
+
+    xTaskCreate(adc_debugger_task,
+                "adc_debugger",
+                configMINIMAL_STACK_SIZE,
+                NULL,
+                1,
+                &adc_debugger_task_handler);
 
     vTaskStartScheduler();
 
@@ -126,5 +127,35 @@ portTASK_FUNCTION(startup_task, pvParameters) {
 
     // Bye!
     vTaskDelete(NULL);
+
+}
+
+
+portTASK_FUNCTION(adc_debugger_task, pvParameters) {
+
+
+    info("starting the ADC debugger task");
+
+#pragma clang diagnostic push
+#pragma ide diagnostic ignored "EndlessLoop"
+
+    for(EVER) {
+
+
+        int x_raw = joystick1.x.raw_value;
+        int y_raw = joystick1.y.raw_value;
+
+        int x_filtered = joystick1.x.filtered_value;
+        int y_filtered = joystick1.y.filtered_value;
+
+
+        //info("x_raw: %d, y_raw: %d, x_filtered: %d, y_filtered: %d", x_raw, y_raw, x_filtered, y_filtered);
+
+        info("x_raw: %d, x_filtered: %d", x_raw, x_filtered);
+        vTaskDelay(pdMS_TO_TICKS(50));
+
+    }
+
+#pragma clang diagnostic pop
 
 }

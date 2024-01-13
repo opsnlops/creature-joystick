@@ -22,9 +22,7 @@ extern joystick joystick1;
 extern pot pot1;
 extern button button1;
 
-extern joystick joystick2;
-extern pot pot2;
-extern button button2;
+
 
 enum {
     JOYSTICK = 0
@@ -40,6 +38,11 @@ void usb_init() {
     // This should be called after scheduler/kernel is started.
     // Otherwise, it could cause kernel issue since USB IRQ handler does use RTOS queue API.
     tud_init(BOARD_TUD_RHPORT);
+
+    // Use the onboard LED to show when we're sending CDC data
+    gpio_init(PICO_DEFAULT_LED_PIN);
+    gpio_set_dir(PICO_DEFAULT_LED_PIN, GPIO_OUT);
+    gpio_put(PICO_DEFAULT_LED_PIN, false);
 
 }
 
@@ -119,11 +122,13 @@ void cdc_send(char* buf) {
 
     if (tud_cdc_connected()) {
 
+        gpio_put(PICO_DEFAULT_LED_PIN, true);
         tud_cdc_n_write_str(0, buf);
         tud_cdc_n_write_flush(0);
+
+        gpio_put(PICO_DEFAULT_LED_PIN, false);
     }
     else {
         info("skipped CDC send");
     }
 }
-
