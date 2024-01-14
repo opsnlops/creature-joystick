@@ -14,7 +14,7 @@ extern "C"
 #include "pico/stdlib.h"
 #include "hardware/gpio.h"
 
-#include "joystick/filter.h"
+#include "joystick/responsive_analog_read_filter.h"
 
 // Reader task for this joystick
 portTASK_FUNCTION_PROTO(analog_reader_task, pvParameters);

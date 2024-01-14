@@ -30,8 +30,8 @@ target_sources(joystick PUBLIC
         src/display/display_wrapper.h
         src/joystick/adc.c
         src/joystick/adc.h
-        src/joystick/filter.c
-        src/joystick/filter.h
+        src/joystick/responsive_analog_read_filter.c
+        src/joystick/responsive_analog_read_filter.h
         src/joystick/joystick.c
         src/joystick/joystick.h
         src/logging/logging.c
@@ -79,8 +79,8 @@ target_sources(adc-debugger PUBLIC
         src/freertos_hook.c
         src/joystick/adc.c
         src/joystick/adc.h
-        src/joystick/filter.c
-        src/joystick/filter.h
+        src/joystick/responsive_analog_read_filter.c
+        src/joystick/responsive_analog_read_filter.h
         src/joystick/joystick.c
         src/joystick/joystick.h
         src/logging/logging.c

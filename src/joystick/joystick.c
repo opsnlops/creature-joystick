@@ -98,10 +98,10 @@ axis create_axis(uint8_t adc_channel) {
     a.adc_channel = adc_channel;
     a.raw_value = 0;
     a.filtered_value = 0;
-    a.adc_max = 4095;       // We're using 13 bit ADCs
+    a.adc_max = 4095;       // We're using 12 bit ADCs
     a.adc_min = 0;
     a.inverted = false;
-    a.filter = create_analog_filter(true, (float)0.1);
+    a.filter = create_analog_filter(true, (float)ANALOG_READ_FILTER_SNAP_VALUE);
 
     debug("created a new axis on ADC channel %u", adc_channel);
 
@@ -203,7 +203,7 @@ TaskHandle_t start_analog_reader_task()
 
     xTaskCreate(analog_reader_task,
                 "analog_reader_task",
-                1024,
+                configMINIMAL_STACK_SIZE + 512,
                 (void*)0,
                 1,
                 &reader_handle);
@@ -223,7 +223,7 @@ TaskHandle_t start_button_reader_task()
 
     xTaskCreate(button_reader_task,
                 "button_reader_task",
-                1024,
+                configMINIMAL_STACK_SIZE + 512,
                 (void*)0,
                 1,
                 &reader_handle);

@@ -18,6 +18,20 @@
 #define POLLING_INTERVAL            10
 
 
+/**
+ * Analog Read Filter
+ *
+ * From the code:
+ *
+ *    SnapMultiplier is a value from 0 to 1 that controls the amount of easing. Increase this to lessen
+ *    the amount of easing (such as 0.1) and make the responsive values more responsive, but doing so may
+ *    cause more noise to seep through when sleep is not enabled.
+ */
+#define ANALOG_READ_FILTER_SNAP_VALUE 0.3
+
+
+
+
 /*
  * Display Stuff
  */

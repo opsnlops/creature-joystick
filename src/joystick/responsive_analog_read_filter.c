@@ -35,7 +35,7 @@
 #include <stdlib.h>
 #include "logging/logging.h"
 
-#include "filter.h"
+#include "responsive_analog_read_filter.h"
 
 analog_filter create_analog_filter(bool sleep_enable, float snap_multiplier) {
 
@@ -45,7 +45,7 @@ analog_filter create_analog_filter(bool sleep_enable, float snap_multiplier) {
     f.sleep_enable = sleep_enable;
     f.snap_multiplier = snap_multiplier;
     f.analog_resolution = 4096;
-    f.activity_threshold = (float)20.0;
+    f.activity_threshold = (float)25.0;
     f.edge_snap_enable = true;
     f.error_ema = (float)0.0;
     f.sleeping = false;
