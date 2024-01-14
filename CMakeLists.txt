@@ -47,7 +47,7 @@ target_include_directories(joystick PUBLIC
         .
         src/)
 
-add_subdirectory(pico-ssd1306)
+add_subdirectory(lib/ssd1306)
 
 # In addition to pico_stdlib required for common PicoSDK functionality, add dependency on tinyusb_device
 # for TinyUSB device support and tinyusb_board for the additional board support library used by the example

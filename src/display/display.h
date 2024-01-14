@@ -4,8 +4,8 @@
 
 #include "hardware/i2c.h"
 
-#include "pico-ssd1306/ssd1306.h"
-#include "pico-ssd1306/textRenderer/TextRenderer.h"
+#include "ssd1306.h"
+#include "textRenderer/TextRenderer.h"
 
 #define DISPLAY_I2C_BAUD_RATE 1000000
 #define DISPLAY_I2C_CONTROLLER i2c1

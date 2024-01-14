@@ -9,8 +9,8 @@
 #include "hardware/i2c.h"
 #include "pico/stdlib.h"
 
-#include "pico-ssd1306/ssd1306.h"
-#include "pico-ssd1306/textRenderer/TextRenderer.h"
+#include "ssd1306.h"
+#include "textRenderer/TextRenderer.h"
 
 #include "display.h"
 #include "logging/logging.h"
