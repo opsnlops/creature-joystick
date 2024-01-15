@@ -19,6 +19,7 @@
 #include "display/display_task.h"
 #include "display/display_wrapper.h"
 #include "joystick/joystick.h"
+#include "lights/status_lights.h"
 #include "logging/logging.h"
 #include "usb/usb.h"
 
@@ -89,6 +90,10 @@ int main(void)
     // And go!
     analog_reader_task_handler = start_analog_reader_task();
     button_reader_task_handler = start_button_reader_task();
+
+    // Start up the status lights
+    status_lights_init();
+    status_lights_start();
 
 
     // Queue up the startup task for right after the scheduler starts

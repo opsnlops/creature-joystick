@@ -71,4 +71,18 @@ typedef uint8_t button_t;                   // These two need to be
 /*
  * NeoPixel stuffs
  */
-#define NEOPIXEL_PIN                26
+
+#define STATUS_LIGHTS_TIME_MS               15
+#define STATUS_LIGHTS_PIO                   pio1
+
+#define STATUS_LIGHTS_GPIO                  7
+#define STATUS_LIGHTS_ARE_RGBW              false
+
+#define AXIS_LIGHTS_GPIO                    8
+#define AXIS_LIGHTS_ARE_RGBW                false
+
+#define BUTTON_LIGHTS_GPIO                  9
+#define BUTTON_LIGHTS_ARE_RGBW              false
+
+// Max brightness of the lights. Max is 255.
+#define STATUS_LIGHTS_BRIGHTNESS            64

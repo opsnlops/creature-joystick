@@ -34,20 +34,30 @@ target_sources(joystick PUBLIC
         src/joystick/responsive_analog_read_filter.h
         src/joystick/joystick.c
         src/joystick/joystick.h
+        src/lights/colors.c
+        src/lights/colors.h
+        src/lights/status_lights.c
+        src/lights/status_lights.h
         src/logging/logging.c
         src/logging/logging.h
         src/usb/usb.c
         src/usb/usb.h
         src/usb/usb_descriptors.c
         src/usb/usb_descriptors.h
+        src/util/ranges.c
+        src/util/ranges.h
         )
 
 # Make sure TinyUSB can find tusb_config.h
 target_include_directories(joystick PUBLIC
-        .
-        src/)
+        src/
+        generated/)
 
 add_subdirectory(lib/ssd1306)
+
+
+# PIO-base NeoPixel control 😍
+pico_generate_pio_header(joystick ${CMAKE_CURRENT_LIST_DIR}/src/lights/ws2812.pio OUTPUT_DIR ${CMAKE_CURRENT_LIST_DIR}/generated)
 
 # In addition to pico_stdlib required for common PicoSDK functionality, add dependency on tinyusb_device
 # for TinyUSB device support and tinyusb_board for the additional board support library used by the example
@@ -56,6 +66,7 @@ target_link_libraries(joystick PUBLIC
         FreeRTOS-Kernel-Heap4
         pico_stdlib
         pico_unique_id
+        hardware_pio
         hardware_spi
         tinyusb_device
         tinyusb_board
