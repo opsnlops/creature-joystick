@@ -296,12 +296,6 @@ portTASK_FUNCTION(button_reader_task, pvParameters) {
             else {
                 clearButton(&button_state_mask, i);
             }
-
-            if(i == 4) {
-                debug("button 4 is %s", gpio_get(BUTTON_IN) ? "not pressed" : "pressed");
-            } else if(i == 6) {
-                debug("button 6 is %s", gpio_get(BUTTON_IN) ? "not pressed" : "pressed");
-            }
         }
 
 
