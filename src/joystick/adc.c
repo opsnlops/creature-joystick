@@ -47,7 +47,7 @@ void joystick_adc_init() {
 uint16_t joystick_read_adc(uint8_t analog_channel) {
 
     // This is a big bug if this happens
-    configASSERT(analog_channel >= TOTAL_NUM_ADC_CHANNELS);
+    configASSERT(analog_channel < TOTAL_NUM_ADC_CHANNELS);
 
     uint8_t adc_channel = analog_channel % CHANNELS_PER_ADC;
     uint8_t acd_cs = analog_channel <= CHANNELS_PER_ADC ? ADC0_CS_PIN : ADC1_CS_PIN;
