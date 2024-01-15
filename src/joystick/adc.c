@@ -9,7 +9,12 @@
 
 #include "logging/logging.h"
 
-#define ADC0_CS_PIN         5
+#define ADC0_CS_PIN             5
+#define ADC1_CS_PIN             6
+
+#define CHANNELS_PER_ADC        8
+#define NUMBER_OF_ADCS          2
+#define TOTAL_NUM_ADC_CHANNELS  CHANNELS_PER_ADC * NUMBER_OF_ADCS
 
 void joystick_adc_init() {
 
@@ -22,18 +27,37 @@ void joystick_adc_init() {
     gpio_set_function(4, GPIO_FUNC_SPI);
 
 
-    // Chip Select
+    // Chip Select (ADC0)
     gpio_init(ADC0_CS_PIN);
     gpio_set_dir(ADC0_CS_PIN, GPIO_OUT);
     gpio_put(ADC0_CS_PIN, 1);
+
+    // Chip Select (ADC1)
+    gpio_init(ADC1_CS_PIN);
+    gpio_set_dir(ADC1_CS_PIN, GPIO_OUT);
+    gpio_put(ADC1_CS_PIN, 1);
+
+
     vTaskDelay(pdMS_TO_TICKS(5));
 
     info("SPI set up for spi0");
 }
 
 
-uint16_t joystick_read_adc(uint8_t adc_channel)
-{
+uint16_t joystick_read_adc(uint8_t analog_channel) {
+
+    // This is a big bug if this happens
+    assert(analog_channel > TOTAL_NUM_ADC_CHANNELS);
+
+    uint8_t adc_channel = analog_channel % CHANNELS_PER_ADC;
+    uint8_t acd_cs = analog_channel <= CHANNELS_PER_ADC ? ADC0_CS_PIN : ADC1_CS_PIN;
+
+    verbose("read channel %u -> channel %u, CS %u", analog_channel, adc_channel, acd_cs);
+    return adc_read(adc_channel, acd_cs);
+
+}
+
+uint16_t adc_read(uint8_t adc_channel, uint8_t adc_num_cs_pin) {
 
     /*
      * The datasheet for the MCP3304 is at:
@@ -41,7 +65,7 @@ uint16_t joystick_read_adc(uint8_t adc_channel)
      */
 
     // Bring up the CS pin
-    gpio_put(ADC0_CS_PIN, 0);
+    gpio_put(adc_num_cs_pin, 0);
 
     uint8_t command_bits = 12;              // 00001100
     command_bits |= (adc_channel >> 1);
@@ -59,12 +83,10 @@ uint16_t joystick_read_adc(uint8_t adc_channel)
 
     spi_read_blocking(spi0, 0, &b2, 1);
 
-    vTaskDelay(pdMS_TO_TICKS(0.05));
-    gpio_put(ADC0_CS_PIN, 1);
+    gpio_put(adc_num_cs_pin, 1);
 
     uint8_t low = b2;
     uint16_t reading = hi * 256 + low;
 
     return reading;
-
 }

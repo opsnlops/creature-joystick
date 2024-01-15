@@ -17,21 +17,6 @@ QueueHandle_t creature_log_message_queue_handle;
 bool logging_queue_exists = false;
 
 
-/**
- * Write a line to the CDC port
- *
- * @param line the line to write
- */
-void write_to_cdc(char* line) {
-
-    // Use the onboard LED as a "TX" light
-    //gpio_put(CDC_ACTIVE_PIN, true);
-
-    cdc_send(line);
-
-    //gpio_put(CDC_ACTIVE_PIN, false);
-
-}
 
 void logger_init() {
     creature_log_message_queue_handle = xQueueCreate(LOGGING_QUEUE_LENGTH, sizeof(struct LogMessage));

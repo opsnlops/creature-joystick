@@ -61,7 +61,7 @@ int main(void)
     init_reader();
 
     // Left Half
-    joystick1 = create_2axis_joystick(1, 0);
+    joystick1 = create_2axis_joystick(1, 10);
     joystick1.x.inverted = true;
     pot1 = create_pot(3);
     button1 = create_button(BUTTON_7_PIN, false);
@@ -149,9 +149,8 @@ portTASK_FUNCTION(adc_debugger_task, pvParameters) {
         int y_filtered = joystick1.y.filtered_value;
 
 
-        //info("x_raw: %d, y_raw: %d, x_filtered: %d, y_filtered: %d", x_raw, y_raw, x_filtered, y_filtered);
+        info("raw: X: %d, Y: %d -> x: %u, y: %u", x_raw, y_raw, x_filtered, y_filtered);
 
-        info("x_raw: %d, x_filtered: %d", x_raw, x_filtered);
         vTaskDelay(pdMS_TO_TICKS(50));
 
     }
