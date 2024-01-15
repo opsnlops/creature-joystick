@@ -15,6 +15,8 @@ extern "C"
 #include <task.h>
 #include <timers.h>
 
+#include "controller-config.h"
+
 // TinyUSB
 #include "tusb.h"
 
@@ -48,7 +50,7 @@ bool hid_creature_joystick_report(uint8_t instance, uint8_t report_id,
                                   int8_t x,  int8_t y, int8_t z,
                                   int8_t rz, int8_t rx, int8_t ry,
                                   uint8_t left_dial, uint8_t right_dial,
-                                  uint32_t buttons);
+                                  button_t buttons);
 
 /**
  * Our custom HID report
@@ -63,7 +65,7 @@ typedef struct TU_ATTR_PACKED
     int8_t  ry;        ///< Delta Ry movement of analog right trigger
     uint8_t left_dial;
     uint8_t right_dial;
-    //uint32_t buttons;  ///< Buttons mask for currently pressed buttons
+    button_t buttons;  ///< Buttons mask for currently pressed buttons
 } creature_joystick_report_t;
 
 

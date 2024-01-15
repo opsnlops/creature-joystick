@@ -25,6 +25,8 @@
 #ifndef USB_DESCRIPTORS_H_
 #define USB_DESCRIPTORS_H_
 
+#include "controller-config.h"
+
 #ifdef __cplusplus
 extern "C"
 {
@@ -52,20 +54,16 @@ extern "C"
     HID_REPORT_COUNT   ( 8                                      ) ,\
     HID_REPORT_SIZE    ( 8                                      ) ,\
     HID_INPUT          ( HID_DATA | HID_VARIABLE | HID_ABSOLUTE ) ,\
-  HID_COLLECTION_END \
-
-
-    /*
-     *     /* 32 bit Button Map * / \
+    /* 32 bit Button Map */ \
     HID_USAGE_PAGE     ( HID_USAGE_PAGE_BUTTON                  ) ,\
     HID_USAGE_MIN      ( 1                                      ) ,\
-    HID_USAGE_MAX      ( 32                                     ) ,\
+    HID_USAGE_MAX      ( 8                                      ) ,\
     HID_LOGICAL_MIN    ( 0                                      ) ,\
     HID_LOGICAL_MAX    ( 1                                      ) ,\
-    HID_REPORT_COUNT   ( 2                                      ) ,\
-    HID_REPORT_SIZE    ( 1                                      ) ,\
+    HID_REPORT_COUNT   ( 8                                      ) ,\
+    HID_REPORT_SIZE    ( sizeof(button_t)                       ) ,\
     HID_INPUT          ( HID_DATA | HID_VARIABLE | HID_ABSOLUTE ) ,\
-     */
+    HID_COLLECTION_END
 
 
 enum {

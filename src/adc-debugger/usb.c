@@ -20,7 +20,6 @@ uint32_t events_processed = 0;
 
 extern joystick joystick1;
 extern pot pot1;
-extern button button1;
 
 
 

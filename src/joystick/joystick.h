@@ -11,6 +11,8 @@ extern "C"
 #include <FreeRTOS.h>
 #include <task.h>
 
+#include "controller-config.h"
+
 #include "pico/stdlib.h"
 #include "hardware/gpio.h"
 
@@ -40,12 +42,6 @@ typedef struct {
     axis z;
 } pot;
 
-typedef struct {
-    uint8_t gpio_pin;
-    bool pressed;
-    bool inverted;
-} button;
-
 void init_reader();
 void register_axis(axis* a);
 
@@ -55,9 +51,9 @@ joystick create_2axis_joystick(uint8_t x_adc_channel, uint8_t y_adc_channel);
 joystick create_3axis_joystick(uint8_t x_adc_channel, uint8_t y_adc_channel, uint8_t z_adc_channel);
 pot create_pot(uint8_t adc_channel);
 
-button create_button(uint8_t gpio_pin, bool inverted);
-void register_button(button * b);
-void read_button(button* b);
+void setButton(button_t *buttonState, uint8_t button);
+void clearButton(button_t *buttonState, uint8_t button);
+void toggleButton(button_t *buttonState, uint8_t button);
 
 TaskHandle_t start_analog_reader_task();
 TaskHandle_t start_button_reader_task();

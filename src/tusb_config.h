@@ -91,7 +91,7 @@ extern "C" {
 //--------------------------------------------------------------------
 
 #ifndef CFG_TUD_ENDPOINT0_SIZE
-#define CFG_TUD_ENDPOINT0_SIZE    256
+#define CFG_TUD_ENDPOINT0_SIZE    64
 #endif
 
 //------------- CLASS -------------//

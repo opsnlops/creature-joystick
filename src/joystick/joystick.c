@@ -14,28 +14,57 @@
 uint8_t number_of_axen;
 axis* axis_collection[MAX_NUMBER_OF_AXEN];
 
-uint8_t number_of_buttons;
-button* button_collection[MAX_NUMBER_OF_BUTTONS];
+// The current state of the buttons. This needs to be done as a mask
+// so that we can send it to the computer over USB as a gamepad HID
+// device report
+button_t button_state_mask = 0;
 
-bool current_button_state[MAX_NUMBER_OF_BUTTONS];
+/**
+ * This is an array of masks for the MUX for the buttons
+ *
+ * Right now only 0-7 are actually being used, but it doesn't hurt to add them all for later.
+ */
+const uint32_t BUTTON_MUX_MASKS[16] = {
+        0, // 0000 - All lines off
+        GPIO_MASK(BUTTON_MUX0), // 0001 - Line 0 on
+        GPIO_MASK(BUTTON_MUX1), // 0010 - Line 1 on
+        GPIO_MASK(BUTTON_MUX0) | GPIO_MASK(BUTTON_MUX1), // 0011 - Lines 0 and 1 on
+        GPIO_MASK(BUTTON_MUX2), // 0100 - Line 2 on
+        GPIO_MASK(BUTTON_MUX2) | GPIO_MASK(BUTTON_MUX0), // 0101 - Lines 2 and 0 on
+        GPIO_MASK(BUTTON_MUX2) | GPIO_MASK(BUTTON_MUX1), // 0110 - Lines 2 and 1 on
+        GPIO_MASK(BUTTON_MUX2) | GPIO_MASK(BUTTON_MUX1) | GPIO_MASK(BUTTON_MUX0), // 0111 - Lines 2, 1, and 0 on
+        GPIO_MASK(BUTTON_MUX3), // 1000 - Line 3 on
+        GPIO_MASK(BUTTON_MUX3) | GPIO_MASK(BUTTON_MUX0), // 1001 - Lines 3 and 0 on
+        GPIO_MASK(BUTTON_MUX3) | GPIO_MASK(BUTTON_MUX1), // 1010 - Lines 3 and 1 on
+        GPIO_MASK(BUTTON_MUX3) | GPIO_MASK(BUTTON_MUX1) | GPIO_MASK(BUTTON_MUX0), // 1011 - Lines 3, 1, and 0 on
+        GPIO_MASK(BUTTON_MUX3) | GPIO_MASK(BUTTON_MUX2), // 1100 - Lines 3 and 2 on
+        GPIO_MASK(BUTTON_MUX3) | GPIO_MASK(BUTTON_MUX2) | GPIO_MASK(BUTTON_MUX0), // 1101 - Lines 3, 2, and 0 on
+        GPIO_MASK(BUTTON_MUX3) | GPIO_MASK(BUTTON_MUX2) | GPIO_MASK(BUTTON_MUX1), // 1110 - Lines 3, 2, and 1 on
+        GPIO_MASK(BUTTON_MUX3) | GPIO_MASK(BUTTON_MUX2) | GPIO_MASK(BUTTON_MUX1) | GPIO_MASK(BUTTON_MUX0)  // 1111 - All lines on
+};
+
+const uint32_t BUTTON_GPIO_MASK = BUTTON_MUX_MASKS[15];
 
 void init_reader() {
 
     number_of_axen = 0;
-    number_of_buttons = 0;
 
     // Wipe out our axis collection
     memset(axis_collection, '\0', sizeof(axis*) * MAX_NUMBER_OF_AXEN);
     debug("created the array of axen");
 
-    memset(button_collection, '\0', sizeof(button*) * MAX_NUMBER_OF_BUTTONS);
-    debug("created the array of buttons");
+    // Set up all of the pins on the MUX
+    for( int i = BUTTON_MUX0; i <= BUTTON_MUX3; i++) {
+        gpio_set_function(i, GPIO_FUNC_SIO);
+        gpio_set_dir(i, 1);
+        gpio_pull_up(i);
+    }
 
-    for(int i = 0; i < MAX_NUMBER_OF_BUTTONS; i++)
-        current_button_state[i] = false;
-    debug("set the state of the buttons to false");
+    // ...and the button input pin
+    gpio_set_function(BUTTON_IN, GPIO_FUNC_SIO);
+    gpio_set_dir(BUTTON_IN, 0);
 
-
+    debug("configured the MUX and button input GPIO pins");
 }
 
 void register_axis(axis* a) {
@@ -155,45 +184,24 @@ pot create_pot(uint8_t adc_channel) {
 
 }
 
-button create_button(uint8_t gpio_pin, bool inverted) {
 
-    button b;
 
-    b.gpio_pin = gpio_pin;
-    b.inverted = inverted;
-    b.pressed = false;
-
-    // Set up this GPIO pin
-    gpio_set_function(gpio_pin, GPIO_FUNC_SIO);
-    gpio_set_dir(gpio_pin, false);
-    gpio_pull_up(gpio_pin);
-
-    debug("created a new button on GPIO %u", gpio_pin);
-    return b;
+void setButton(button_t *buttonState, uint8_t button) {
+    if (button < MAX_NUMBER_OF_BUTTONS) {
+        *buttonState |= (1u << button);
+    }
 }
 
-
-void register_button(button * b) {
-
-    if(number_of_buttons >= MAX_NUMBER_OF_BUTTONS){
-        fatal("more than %u buttons registered", MAX_NUMBER_OF_BUTTONS);
-        tight_loop_contents();
+void clearButton(button_t *buttonState, uint8_t button) {
+    if (button < MAX_NUMBER_OF_BUTTONS) {
+        *buttonState &= ~(1u << button);
     }
-
-    button_collection[number_of_buttons] = b;
-    number_of_buttons++;
 }
 
-void read_button(button* b) {
-
-    // They're active low
-    if(!gpio_get(b->gpio_pin)) {
-        b->pressed = true;
+void toggleButton(button_t *buttonState, uint8_t button) {
+    if (button < MAX_NUMBER_OF_BUTTONS) {
+        *buttonState ^= (1u << button);
     }
-    else {
-        b->pressed = false;
-    }
-
 }
 
 
@@ -273,27 +281,29 @@ portTASK_FUNCTION(button_reader_task, pvParameters) {
 
     for(EVER) {
 
-        for(int i = 0; i < number_of_buttons; i++) {
+        // Walk all of the buttons and update the button state var
+        for(uint8_t i = 0; i < MAX_NUMBER_OF_BUTTONS; i++) {
 
-            button* b = button_collection[i];
-            read_button(b);
+            // Set the MUX mask for this button
+            gpio_put_masked(BUTTON_GPIO_MASK, BUTTON_MUX_MASKS[i]);
 
-            if(b->pressed && current_button_state[i] == false) {
+            // This might not be needed. The MUX's datasheet says it needs 200ns.
+            sleep_us(1);
 
-                // We switched to true
-                current_button_state[i] = true;
-                debug("button %u pressed (gpio %u)", i, b->gpio_pin);
+            if(!gpio_get(BUTTON_IN)) {
+                setButton(&button_state_mask, i);
+            }
+            else {
+                clearButton(&button_state_mask, i);
             }
 
-            else if(!b->pressed && current_button_state[i] == true) {
-
-                // We switched to false
-                current_button_state[i] = false;
-                debug("button %u released (gpio %u)", i, b->gpio_pin);
+            if(i == 4) {
+                debug("button 4 is %s", gpio_get(BUTTON_IN) ? "not pressed" : "pressed");
+            } else if(i == 6) {
+                debug("button 6 is %s", gpio_get(BUTTON_IN) ? "not pressed" : "pressed");
             }
-
-
         }
+
 
         vTaskDelay(pdMS_TO_TICKS(POLLING_INTERVAL));
 

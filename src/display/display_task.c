@@ -6,6 +6,8 @@
 #include <string.h>
 #include <stdio.h>
 
+#include "controller-config.h"
+
 #include "joystick/joystick.h"
 #include "logging/logging.h"
 

@@ -22,11 +22,11 @@ uint32_t events_processed = 0;
 
 extern joystick joystick1;
 extern pot pot1;
-extern button button1;
 
 extern joystick joystick2;
 extern pot pot2;
-extern button button2;
+
+extern button_t button_state_mask;
 
 extern TaskHandle_t analog_reader_task_handler;
 extern TaskHandle_t button_reader_task_handler;
@@ -171,7 +171,7 @@ bool hid_creature_joystick_report(uint8_t instance, uint8_t report_id,
                                   int8_t x,  int8_t y, int8_t z,
                                   int8_t rz, int8_t rx, int8_t ry,
                                   uint8_t left_dial, uint8_t right_dial,
-                                  uint32_t buttons) {
+                                  button_t buttons) {
     creature_joystick_report_t report =
             {
                     .x       = x,
@@ -182,10 +182,11 @@ bool hid_creature_joystick_report(uint8_t instance, uint8_t report_id,
                     .ry      = ry,
                     .left_dial = left_dial,
                     .right_dial = right_dial,
+                    .buttons = buttons
             };
 
 
-    debug("instance: %d, report: %d %d %d %d %d %d", instance, report.x, report.y, report.z, report.rz, report.rx, report.ry);
+    verbose("instance: %d, report: %d %d %d %d %d %d, buttons: %ul", instance, report.x, report.y, report.z, report.rz, report.rx, report.ry, buttons);
 
     return tud_hid_n_report(instance, report_id, &report, sizeof(report));
 }
@@ -223,9 +224,6 @@ static void send_hid_report()
 #endif
 
     verbose("send_hid_report");
-    uint32_t buttons = 0x0;
-    if(button1.pressed)
-        buttons = 0x1;
 
     hid_creature_joystick_report(
             JOYSTICK,
@@ -238,7 +236,7 @@ static void send_hid_report()
             joystick2.z.filtered_value + SCHAR_MIN,
             pot1.z.filtered_value + SCHAR_MIN,
             pot2.z.filtered_value + SCHAR_MIN,
-            buttons
+            button_state_mask
             );
 
     reports_sent++;

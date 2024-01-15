@@ -22,7 +22,6 @@
 
 joystick joystick1;
 pot pot1;
-button button1;
 
 char* pico_board_id;
 
@@ -64,12 +63,10 @@ int main(void)
     joystick1 = create_2axis_joystick(1, 10);
     joystick1.x.inverted = true;
     pot1 = create_pot(3);
-    button1 = create_button(BUTTON_7_PIN, false);
 
     register_axis(&joystick1.x);
     register_axis(&joystick1.y);
     register_axis(&pot1.z);
-    register_button(&button1);
 
 
     // And go!
