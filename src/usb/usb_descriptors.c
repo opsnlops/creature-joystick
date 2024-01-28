@@ -34,7 +34,7 @@ tusb_desc_device_t const desc_device =
 
             .idVendor           = USB_VID,
             .idProduct          = USB_PID,
-            .bcdDevice          = 0x0130,       // Version number
+            .bcdDevice          = 0x0140,       // Version number
 
             .iManufacturer      = USB_MANUFACTURER_INDEX,
             .iProduct           = USB_PRODUCT_INDEX,
@@ -56,18 +56,17 @@ uint8_t const *tud_descriptor_device_cb(void) {
 //--------------------------------------------------------------------+
 
 // We've got two gamepads, so they're the same
-uint8_t const desc_hid_joystick[] =
+uint8_t const desc_hid_report[] =
 {
         TUD_HID_REPORT_DESC_ACW_JOYSTICK (HID_REPORT_ID(REPORT_ID_GAMEPAD))
 };
-
 
 // Invoked when received GET HID REPORT DESCRIPTOR
 // Application return pointer to descriptor
 // Descriptor contents must exist long enough for transfer to complete
 uint8_t const *tud_hid_descriptor_report_cb(uint8_t interface) {
     debug("tud_hid_descriptor_report_cb(): interface: %d", interface);
-    return desc_hid_joystick;
+    return desc_hid_report;
 }
 
 //--------------------------------------------------------------------+
@@ -94,10 +93,10 @@ enum {
 uint8_t const desc_configuration[] =
     {
             // Config number, interface count, string index, total length, attribute, power in mA
-            TUD_CONFIG_DESCRIPTOR(1, ITF_NUM_TOTAL, 0, CONFIG_TOTAL_LEN, 0x00, 200),
+            TUD_CONFIG_DESCRIPTOR(1, ITF_NUM_TOTAL, 0, CONFIG_TOTAL_LEN, 0x00, 100),
 
             // Interface number, string index, protocol, report descriptor len, EP In address, size & polling interval
-            TUD_HID_DESCRIPTOR(ITF_NUM_HID, 4, HID_ITF_PROTOCOL_NONE, sizeof(desc_hid_joystick),
+            TUD_HID_DESCRIPTOR(ITF_NUM_HID, 4, HID_ITF_PROTOCOL_NONE, sizeof(desc_hid_report),
                                EPNUM_HID_LEFT, CFG_TUD_HID_EP_BUFSIZE, POLLING_INTERVAL),
 
             TUD_CDC_DESCRIPTOR(ITF_NUM_CDC, 5, EPNUM_CDC_NOTIF, 8, EPNUM_CDC_OUT, EPNUM_CDC_IN, 64)
@@ -127,7 +126,9 @@ char const *string_desc_arr[] =
         "April's Creature Workshop",        // 1: Manufacturer
         "Joystick",                         // 2: Product
         NULL,                               // 3: Serials, should use chip ID
-        "Knobs and Buttons"                 // 4: Description
+        "Knobs and Buttons",                 // 4: Description
+        "Debugger"                // 5: Description
+
 };
 
 static uint16_t _desc_str[32];
