@@ -2,4 +2,4 @@
 build/
 cmake-build-*/
 generated/
-
+/lib/ADS112C04/

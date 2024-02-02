@@ -48,6 +48,19 @@ target_sources(joystick PUBLIC
         src/util/ranges.h
         )
 
+# Create a static library out of ads112c04
+add_library(ads112c04 STATIC
+        ${CMAKE_CURRENT_SOURCE_DIR}/lib/ADS112C04/ADS112C04_library/src/implementation_details/ads112c04_api.c
+)
+
+
+# Include directories for this library
+target_include_directories(ads112c04 PUBLIC
+        ${CMAKE_CURRENT_SOURCE_DIR}/lib/ADS112C04/ADS112C04_library/src
+        ${CMAKE_CURRENT_SOURCE_DIR}/lib/ADS112C04/ADS112C04_library/src/implementation_details
+)
+
+
 # Make sure TinyUSB can find tusb_config.h
 target_include_directories(joystick PUBLIC
         src/
@@ -103,6 +116,8 @@ target_sources(adc-debugger PUBLIC
         src/adc-debugger/usb.h
         src/adc-debugger/usb_descriptors.c
         src/adc-debugger/usb_descriptors.h
+        src/joystick/ads112c04.h
+        src/joystick/ads112c04.c
 )
 
 target_include_directories(adc-debugger PUBLIC
@@ -115,8 +130,10 @@ target_link_libraries(adc-debugger PUBLIC
         pico_stdlib
         pico_unique_id
         hardware_spi
+        hardware_i2c
         tinyusb_device
         tinyusb_board
+        ads112c04
 )
 
 pico_add_extra_outputs(adc-debugger)

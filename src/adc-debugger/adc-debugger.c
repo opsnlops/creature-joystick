@@ -20,6 +20,9 @@
 #include "logging/logging.h"
 #include "usb/usb.h"
 
+#include "joystick/ads112c04.h"
+
+
 joystick joystick1;
 pot pot1;
 
@@ -58,6 +61,10 @@ int main(void)
 
     board_init();
     init_reader();
+
+    // Bring up the experimental ADS112C04
+    ads_init();
+
 
     // Left Half
     joystick1 = create_2axis_joystick(1, 10);
@@ -147,6 +154,9 @@ portTASK_FUNCTION(adc_debugger_task, pvParameters) {
 
 
         info("raw: X: %d, Y: %d -> x: %u, y: %u", x_raw, y_raw, x_filtered, y_filtered);
+
+        ads_read();
+
 
         vTaskDelay(pdMS_TO_TICKS(50));
 
