@@ -54,7 +54,7 @@ extern "C"
     HID_REPORT_COUNT   ( 8                                      ) ,\
     HID_REPORT_SIZE    ( 8                                      ) ,\
     HID_INPUT          ( HID_DATA | HID_VARIABLE | HID_ABSOLUTE ) ,\
-    /* 32 bit Button Map */ \
+    /* Eight buttons */ \
     HID_USAGE_PAGE     ( HID_USAGE_PAGE_BUTTON                  ) ,\
     HID_USAGE_MIN      ( 1                                      ) ,\
     HID_USAGE_MAX      ( 8                                      ) ,\
@@ -63,6 +63,23 @@ extern "C"
     HID_REPORT_COUNT   ( 8                                      ) ,\
     HID_REPORT_SIZE    ( sizeof(button_t)                       ) ,\
     HID_INPUT          ( HID_DATA | HID_VARIABLE | HID_ABSOLUTE ) ,\
+    /* LEDs */                                \
+    HID_USAGE_PAGE     ( HID_USAGE_PAGE_LED                     ) ,\
+    HID_USAGE          ( 0x17                                   ) ,\
+    HID_USAGE          ( 0x18                                   ) ,\
+    HID_USAGE          ( 0x20                                   ) ,\
+    HID_USAGE          ( 0x2D                                   ) ,\
+    HID_USAGE          ( 0x36                                   ) ,\
+    HID_USAGE          ( 0x38                                   ) ,\
+    HID_LOGICAL_MIN    ( 0                                      ) ,\
+    HID_LOGICAL_MAX    ( 1                                      ) ,\
+    HID_REPORT_COUNT   ( 6                                      ) ,\
+    HID_REPORT_SIZE    ( 1                                      ) ,\
+    HID_OUTPUT         ( HID_DATA | HID_VARIABLE | HID_ABSOLUTE ) ,\
+    /* Discard the last two bits */ \
+    HID_REPORT_COUNT   ( 1                                       ) ,\
+    HID_REPORT_SIZE    ( 2                                       ) ,\
+    HID_OUTPUT         ( HID_CONSTANT                            ) ,\
     HID_COLLECTION_END
 
 
