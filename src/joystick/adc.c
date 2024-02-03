@@ -1,6 +1,4 @@
 
-
-
 #include <stdio.h>
 #include "pico/stdlib.h"
 #include "hardware/spi.h"
@@ -15,6 +13,17 @@
 #define CHANNELS_PER_ADC        8
 #define NUMBER_OF_ADCS          2
 #define TOTAL_NUM_ADC_CHANNELS  CHANNELS_PER_ADC * NUMBER_OF_ADCS
+
+// Function to convert an integer to a binary string
+const char* toBinaryString(uint8_t value) {
+    static char bStr[9];
+    bStr[8] = '\0'; // Null terminator
+    for (int i = 7; i >= 0; i--) {
+        bStr[7 - i] = (value & (1 << i)) ? '1' : '0';
+    }
+    return bStr;
+}
+
 
 void joystick_adc_init() {
 
@@ -37,7 +46,6 @@ void joystick_adc_init() {
     gpio_set_dir(ADC1_CS_PIN, GPIO_OUT);
     gpio_put(ADC1_CS_PIN, 1);
 
-
     vTaskDelay(pdMS_TO_TICKS(5));
 
     info("SPI set up for spi0");
@@ -59,34 +67,32 @@ uint16_t joystick_read_adc(uint8_t analog_channel) {
 
 uint16_t adc_read(uint8_t adc_channel, uint8_t adc_num_cs_pin) {
 
+    // Command to read from a specific channel in single-ended mode
+    // Start bit, SGL/DIFF, and D2 bit of the channel
+    uint8_t cmd0 = 0b00000110 | ((adc_channel & 0b100) >> 2);
+    uint8_t cmd1 = (adc_channel & 0b011) << 6; // Remaining channel bits positioned
+
+    uint8_t txBuffer[3] = {cmd0, cmd1, 0x00}; // The last byte doesn't matter, it's just to clock out the ADC data
+    uint8_t rxBuffer[3] = {0}; // To store the response
+
+    gpio_put(adc_num_cs_pin, 0); // Activate CS to start the transaction
+    spi_write_read_blocking(spi0, txBuffer, rxBuffer, 3); // Send the command and read the response
+    gpio_put(adc_num_cs_pin, 1); // Deactivate CS to end the transaction
+
+    // Now, interpret the response:
+    // Skip the first 6 bits of rxBuffer[1], then take the next 10 bits as the ADC value
+    uint16_t adcResult = ((rxBuffer[1] & 0x0F) << 8) | rxBuffer[2];
+
+    // Debug print
     /*
-     * The datasheet for the MCP3304 is at:
-     * https://ww1.microchip.com/downloads/aemDocuments/documents/APID/ProductDocuments/DataSheets/21697F.pdf
-     */
+    if (adc_channel == 1)
+        debug("ADC Channel: %d, Raw SPI Data: %s %s %s, ADC Result: %u",
+               adc_channel,
+               toBinaryString(rxBuffer[0]),
+               toBinaryString(rxBuffer[1]),
+               toBinaryString(rxBuffer[2]),
+               adcResult);
+    */
 
-    // Bring up the CS pin
-    gpio_put(adc_num_cs_pin, 0);
-
-    uint8_t command_bits = 12;              // 00001100
-    command_bits |= (adc_channel >> 1);
-    spi_write_blocking(spi0, &command_bits, 1); // throw away the read value
-
-    command_bits = 0;
-    command_bits |= (adc_channel << 7);
-
-    uint8_t b1, b2; // The two bytes we care about
-
-    spi_write_read_blocking(spi0, &command_bits, &b1, 1);
-
-    b1 |= 224;                  // 11100000
-    uint8_t hi = b1 & 15;       // 00001111
-
-    spi_read_blocking(spi0, 0, &b2, 1);
-
-    gpio_put(adc_num_cs_pin, 1);
-
-    uint8_t low = b2;
-    uint16_t reading = hi * 256 + low;
-
-    return reading;
+    return adcResult;
 }

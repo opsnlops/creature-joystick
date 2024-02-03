@@ -17,7 +17,7 @@
 //#define SUSPEND_READER_WHEN_NO_USB  0
 
 // How many milliseconds should we treat each frame?
-#define POLLING_INTERVAL            0
+#define POLLING_INTERVAL            2
 
 
 /**

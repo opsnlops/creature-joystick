@@ -148,7 +148,7 @@ portTASK_FUNCTION(adc_debugger_task, pvParameters) {
 
         info("raw: X: %d, Y: %d -> x: %u, y: %u", x_raw, y_raw, x_filtered, y_filtered);
 
-        vTaskDelay(pdMS_TO_TICKS(50));
+        vTaskDelay(pdMS_TO_TICKS(20));
 
     }
 
