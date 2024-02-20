@@ -60,7 +60,7 @@ int main(void)
     init_reader();
 
     // Left Half
-    joystick1 = create_2axis_joystick(1, 10);
+    joystick1 = create_2axis_joystick(0, 1);
     joystick1.x.inverted = true;
     pot1 = create_pot(3);
 

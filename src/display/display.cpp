@@ -29,7 +29,7 @@ Display::Display() {
     // Display
     i2c_init(DISPLAY_I2C_CONTROLLER, DISPLAY_I2C_BAUD_RATE);
 
-    // Set up pins 12 and 13
+    // Set up pins 14 and 15
     gpio_set_function(14, GPIO_FUNC_I2C);
     gpio_set_function(15, GPIO_FUNC_I2C);
     gpio_pull_up(14);
@@ -52,7 +52,7 @@ Display::Display() {
  */
 void Display::init() {
     debug("creating the oled display...");
-    oled = new SSD1306(DISPLAY_I2C_CONTROLLER, DISPLAY_I2C_DEVICE_ADDRESS, Size::W128xH64);
+    oled = new SSD1306(DISPLAY_I2C_CONTROLLER, DISPLAY_I2C_DEVICE_ADDRESS, Size::W128xH32);
 }
 
 void Display::start()

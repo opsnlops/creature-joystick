@@ -34,7 +34,7 @@ tusb_desc_device_t const desc_device =
 
             .idVendor           = USB_VID,
             .idProduct          = USB_PID,
-            .bcdDevice          = 0x0140,       // Version number
+            .bcdDevice          = 0x0150,       // Version number
 
             .iManufacturer      = USB_MANUFACTURER_INDEX,
             .iProduct           = USB_PRODUCT_INDEX,

@@ -10,7 +10,8 @@
 // Just because it's funny
 #define EVER ;;
 
-#define MAX_NUMBER_OF_AXEN          16
+// Could be 16 if there's two MCP3208s
+#define MAX_NUMBER_OF_AXEN          8
 
 
 // If this is defined, suspend the reader when there's no USB connection
@@ -29,7 +30,7 @@
  *    the amount of easing (such as 0.1) and make the responsive values more responsive, but doing so may
  *    cause more noise to seep through when sleep is not enabled.
  */
-#define ANALOG_READ_FILTER_SNAP_VALUE 0.3
+#define ANALOG_READ_FILTER_SNAP_VALUE 0.2
 
 
 
@@ -41,7 +42,7 @@
 // Update every 33ms (roughly 30Hz)
 #define DISPLAY_UPDATE_TIME_MS      33
 #define DISPLAY_BUFFER_SIZE         26
-#define DISPLAY_NUMBER_OF_LINES     7
+#define DISPLAY_NUMBER_OF_LINES     4
 
 
 /*
@@ -72,17 +73,20 @@ typedef uint8_t button_t;                   // These two need to be
  * NeoPixel stuffs
  */
 
-#define STATUS_LIGHTS_TIME_MS               15
-#define STATUS_LIGHTS_PIO                   pio1
+#define STATUS_LIGHTS_TIME_MS       30
+#define STATUS_LIGHTS_PIO           pio1
 
-#define STATUS_LIGHTS_GPIO                  7
-#define STATUS_LIGHTS_ARE_RGBW              false
+#define STATUS_LIGHTS_GPIO          7
+#define STATUS_LIGHTS_ARE_RGBW      false
 
-#define AXIS_LIGHTS_GPIO                    8
-#define AXIS_LIGHTS_ARE_RGBW                false
+#define AXIS_LIGHTS_GPIO            8
+#define AXIS_LIGHTS_ARE_RGBW        false
 
-#define BUTTON_LIGHTS_GPIO                  9
-#define BUTTON_LIGHTS_ARE_RGBW              false
+#define BUTTON_LIGHTS_GPIO          9
+#define BUTTON_LIGHTS_ARE_RGBW      false
 
 // Max brightness of the lights. Max is 255.
-#define STATUS_LIGHTS_BRIGHTNESS            64
+#define STATUS_LIGHTS_BRIGHTNESS    16
+#define CASE_LIGHTS_BRIGHTNESS      25
+
+#define ERROR_LIGHT_BRIGHTNESS      64

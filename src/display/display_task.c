@@ -88,52 +88,22 @@ portTASK_FUNCTION(display_update_task, pvParameters) {
     for(int i = 0; i < DISPLAY_NUMBER_OF_LINES; i++)
         memset(buffer[i], '\0', DISPLAY_BUFFER_SIZE + 1);
 
-
     sprintf(buffer[0], "Reports: %-5lu", reports_sent);
-    sprintf(buffer[1], " Events: %-5lu",  events_processed);
-    sprintf(buffer[2], "    Mem: %u", xFreeHeapSpace);
-    sprintf(buffer[3], "Mounted: %s   Bus: %s",
-                            device_mounted ? "Yes" : "No",
-                            usb_bus_active ? "Yes" : "No");
-    sprintf(buffer[4], "L: %4d %4d %4d %4d",
+    sprintf(buffer[1], "Mounted: %s   Bus: %s",
+            device_mounted ? "Yes" : "No",
+            usb_bus_active ? "Yes" : "No");
+
+    sprintf(buffer[2], "L: %4d %4d %4d %4d",
             joystick1.x.filtered_value, joystick1.y.filtered_value, joystick1.z.filtered_value, pot1.z.filtered_value);
 
-    sprintf(buffer[5], "R: %4d %4d %4d %4d",
+    sprintf(buffer[3], "R: %4d %4d %4d %4d",
                 joystick2.x.filtered_value, joystick2.y.filtered_value, joystick2.z.filtered_value, pot2.z.filtered_value);
-
-    switch(eTaskGetState(analog_reader_task_handler)) {
-
-        case(eSuspended):
-            taskState = "Suspended";
-            break;
-
-        // The spends most of its life in blocked while running
-        case(eBlocked):
-        case(eRunning):
-            taskState = "Running";
-            break;
-
-        case(eDeleted):
-            taskState = "Deleted";
-            break;
-        case(eInvalid):
-            taskState = "Invalid";
-            break;
-        case(eReady):
-            taskState = "Ready";
-            break;
-    }
-
-    sprintf(buffer[6], "%25s", taskState);
 
 
     display_draw_text_small(d, buffer[0], 0, 0);
     display_draw_text_small(d, buffer[1], 0, 7);
-    display_draw_text_small(d, buffer[2], 0, 14);
-    display_draw_text_small(d, buffer[3], 0, 21);
-    display_draw_text_small(d, buffer[4], 0, 36);
-    display_draw_text_small(d, buffer[5], 0, 44);
-    display_draw_text_small(d, buffer[6], 0, 56);
+    display_draw_text_small(d, buffer[2], 0, 16);
+    display_draw_text_small(d, buffer[3], 0, 23);
 
     display_send_buffer(d);
 

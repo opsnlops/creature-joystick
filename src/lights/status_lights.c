@@ -69,24 +69,34 @@ void put_pixel(uint32_t pixel_grb, uint8_t state_machine) {
 }
 
 
+double calculate_brightness(uint8_t value) {
+    return (double)value / (double)UINT8_MAX;
+}
+
+
 portTASK_FUNCTION(status_lights_task, pvParameters) {
 
     debug("hello from the status lights task");
 
     // Define our colors!
-    hsv_t usb_bus_active_color =    {184.0, 1.0, STATUS_LIGHTS_BRIGHTNESS};     // Like a cyan
-    hsv_t usb_bus_inactive_color =  {64.0,  1.0, STATUS_LIGHTS_BRIGHTNESS};     // Yellowish
-    hsv_t device_mounted_color =    {127.0, 1.0, STATUS_LIGHTS_BRIGHTNESS};     // Green
-    hsv_t device_unmounted_color =  {241.0, 1.0, STATUS_LIGHTS_BRIGHTNESS};     // Blue
-    hsv_t error_color =             {0.0, 1.0, STATUS_LIGHTS_BRIGHTNESS};       // Red
+    hsv_t usb_bus_active_color =    {184.0, 1.0, calculate_brightness(STATUS_LIGHTS_BRIGHTNESS)};       // Like a cyan
+    hsv_t usb_bus_inactive_color =  {64.0,  1.0, calculate_brightness(STATUS_LIGHTS_BRIGHTNESS)};       // Yellowish
+    hsv_t device_mounted_color =    {127.0, 1.0, calculate_brightness(STATUS_LIGHTS_BRIGHTNESS)};       // Green
+    hsv_t device_unmounted_color =  {241.0, 1.0, calculate_brightness(STATUS_LIGHTS_BRIGHTNESS)};       // Blue
+    hsv_t error_color =             {0.0, 1.0, calculate_brightness(ERROR_LIGHT_BRIGHTNESS)};           // Red
 
-    hsv_t idle_color =              {0.0, 1.0, 10};
+    hsv_t case_lights_color =       {205.0, 1.0, calculate_brightness(CASE_LIGHTS_BRIGHTNESS)};
+
+    hsv_t idle_color =              {271.0, 1.0, calculate_brightness(2)};
 
     TickType_t lastDrawTime;
 
     uint32_t usb_bus_light;
     uint32_t device_mounted_light;
     uint32_t controller_state_color;
+    uint32_t case_lights = hsv_to_urgb(case_lights_color);
+    uint32_t idle_light = hsv_to_urgb(idle_color);
+    uint32_t error_light = hsv_to_urgb(error_color);
 
     uint32_t axis_color[MAX_NUMBER_OF_AXEN] = {0};
     uint32_t button_color[MAX_NUMBER_OF_BUTTONS] = {0};
@@ -116,7 +126,7 @@ portTASK_FUNCTION(status_lights_task, pvParameters) {
         }
 
         // TODO: Add controller state
-        controller_state_color = hsv_to_urgb(idle_color);
+        controller_state_color = 0;
 
 
         // Look at each of the axii in use
@@ -136,7 +146,7 @@ portTASK_FUNCTION(status_lights_task, pvParameters) {
             hsv_t hsv;
             hsv.h = (double)((double)hue / 100.0);
             hsv.s = 1.0;
-            hsv.v = (double)((double)brightness / UINT8_MAX);
+            hsv.v = calculate_brightness(brightness);
             axis_color[i] = hsv_to_urgb(hsv);
 
         }
@@ -149,15 +159,47 @@ portTASK_FUNCTION(status_lights_task, pvParameters) {
             }
         }
 
+
+
+        /*
+         * Status Lights
+         */
+
         // Color the lights
         put_pixel(usb_bus_light, status_lights_state_machine);
         put_pixel(device_mounted_light, status_lights_state_machine);
         put_pixel(controller_state_color, status_lights_state_machine);
 
+        // Light three is currently unused
+        put_pixel(idle_light, status_lights_state_machine);
+
+        // Case lights
+        put_pixel(case_lights, status_lights_state_machine);
+        put_pixel(case_lights, status_lights_state_machine);
+        put_pixel(case_lights, status_lights_state_machine);
+        put_pixel(case_lights, status_lights_state_machine);
+        put_pixel(case_lights, status_lights_state_machine);
+        put_pixel(case_lights, status_lights_state_machine);
+
+
+        // Action button lights
+        put_pixel(error_light, status_lights_state_machine);
+        put_pixel(error_light, status_lights_state_machine);
+
+
+
+        /*
+         * Axis Lights
+         */
         for(int i = 0; i < number_of_axen; i++) {
             put_pixel(axis_color[i], axis_lights_state_machine);
         }
 
+
+
+        /*
+         * Button Lights
+         */
         for(int i = 0; i < MAX_NUMBER_OF_BUTTONS; i++) {
             put_pixel(button_color[i], button_lights_state_machine);
         }

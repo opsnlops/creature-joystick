@@ -9,7 +9,7 @@
 
 #define DISPLAY_I2C_BAUD_RATE 1000000
 #define DISPLAY_I2C_CONTROLLER i2c1
-#define DISPLAY_I2C_DEVICE_ADDRESS 0x3D
+#define DISPLAY_I2C_DEVICE_ADDRESS 0x3C
 
 // Use the namespace for convenience
 using namespace pico_ssd1306;
