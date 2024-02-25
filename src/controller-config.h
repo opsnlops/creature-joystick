@@ -86,7 +86,7 @@ typedef uint8_t button_t;                   // These two need to be
 #define BUTTON_LIGHTS_ARE_RGBW      false
 
 // Max brightness of the lights. Max is 255.
-#define STATUS_LIGHTS_BRIGHTNESS    16
-#define CASE_LIGHTS_BRIGHTNESS      25
+#define STATUS_LIGHTS_BRIGHTNESS    64
+#define CASE_LIGHTS_BRIGHTNESS      216
 
 #define ERROR_LIGHT_BRIGHTNESS      64

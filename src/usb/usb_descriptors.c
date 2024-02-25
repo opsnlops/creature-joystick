@@ -93,7 +93,7 @@ enum {
 uint8_t const desc_configuration[] =
     {
             // Config number, interface count, string index, total length, attribute, power in mA
-            TUD_CONFIG_DESCRIPTOR(1, ITF_NUM_TOTAL, 0, CONFIG_TOTAL_LEN, 0x00, 100),
+            TUD_CONFIG_DESCRIPTOR(1, ITF_NUM_TOTAL, 0, CONFIG_TOTAL_LEN, 0x00, 250),
 
             // Interface number, string index, protocol, report descriptor len, EP In address, size & polling interval
             TUD_HID_DESCRIPTOR(ITF_NUM_HID, 4, HID_ITF_PROTOCOL_NONE, sizeof(desc_hid_report),
