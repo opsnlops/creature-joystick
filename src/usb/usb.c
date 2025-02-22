@@ -159,7 +159,7 @@ void cdc_send(char* buf) {
         gpio_put(PICO_DEFAULT_LED_PIN, false);
     }
     else {
-        info("skipped CDC send");
+        verbose("skipped CDC send");
     }
 }
 

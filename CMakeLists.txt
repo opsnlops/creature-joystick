@@ -1,10 +1,33 @@
-cmake_minimum_required(VERSION 3.24)
+cmake_minimum_required(VERSION 3.25)
+
+set(FREERTOS_HEAP "4" CACHE STRING "" FORCE)
+set(FREERTOS_PORT "TEMPLATE" CACHE STRING "" FORCE)
+
+#set(PICO_PLATFORM rp2350)
+if (NOT PICO_PLATFORM AND NOT DEFINED ENV{PICO_PLATFORM})
+        message("PICO_PLATFORM not defined, defaulting to rp2040")
+        set(PICO_PLATFORM rp2040)
+endif()
+
 
 # Pull in the Pico SDK
 include($ENV{PICO_SDK_PATH}/external/pico_sdk_import.cmake)
 
-# Pull in FreeRTOS
-include($ENV{FREERTOS_KERNEL_PATH}/portable/ThirdParty/GCC/RP2040/FreeRTOS_Kernel_import.cmake)
+# Make sure we have the right version of the SDK
+if (PICO_SDK_VERSION_STRING VERSION_LESS "2.1.0")
+        message(FATAL_ERROR "Raspberry Pi Pico SDK version 2.1.0 (or later) required. Your version is ${PICO_SDK_VERSION_STRING}")
+endif()
+
+# Pull in FreeRTOS from RPI directly so we get the RP2350 support
+if(PICO_PLATFORM STREQUAL "rp2040")
+        include($ENV{PICO_SDK_PATH}/../FreeRTOS-Kernel/portable/ThirdParty/GCC/RP2040/FreeRTOS_Kernel_import.cmake)
+else()
+        if (PICO_PLATFORM STREQUAL "rp2350-riscv")
+                include($ENV{PICO_SDK_PATH}/../FreeRTOS-Kernel/portable/ThirdParty/GCC/RP2350_RISC-V/FreeRTOS_Kernel_import.cmake)
+        else()
+                include($ENV{PICO_SDK_PATH}/../FreeRTOS-Kernel/portable/ThirdParty/GCC/RP2350_ARM_NTZ/FreeRTOS_Kernel_import.cmake)
+        endif()
+endif()
 
 project(joystick C CXX ASM)
 
