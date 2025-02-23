@@ -30,6 +30,8 @@ struct LogMessage {
 } __attribute__((packed));
 
 
+char* log_level_to_string(uint8_t level);
+
 void logger_init();
 
 void __unused verbose(const char *message, ...);

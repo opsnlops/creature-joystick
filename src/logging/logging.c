@@ -16,7 +16,7 @@ QueueHandle_t creature_log_message_queue_handle;
 
 bool logging_queue_exists = false;
 
-
+extern uint8_t configured_logging_level;
 
 void logger_init() {
     creature_log_message_queue_handle = xQueueCreate(LOGGING_QUEUE_LENGTH, sizeof(struct LogMessage));
@@ -25,74 +25,93 @@ void logger_init() {
     start_log_reader();
 }
 
+char* log_level_to_string(uint8_t level) {
+    switch (level) {
+        case LOG_LEVEL_VERBOSE:
+            return "Verbose";
+        case LOG_LEVEL_DEBUG:
+            return "Debug";
+        case LOG_LEVEL_INFO:
+            return "Info";
+        case LOG_LEVEL_WARNING:
+            return "Warning";
+        case LOG_LEVEL_ERROR:
+            return "Error";
+        case LOG_LEVEL_FATAL:
+            return "Fatal";
+        default:
+            return "Unknown";
+    }
+}
+
 void __unused verbose(const char *message, ...) {
-#if LOGGING_LEVEL > 4
-    // Copy the arguments to a new va_list
-    va_list args;
-    va_start(args, message);
+    if (configured_logging_level > 4) {
+        // Copy the arguments to a new va_list
+        va_list args;
+        va_start(args, message);
 
-    struct LogMessage lm = createMessageObject(LOG_LEVEL_VERBOSE, message, args);
-    va_end(args);
+        struct LogMessage lm = createMessageObject(LOG_LEVEL_VERBOSE, message, args);
+        va_end(args);
 
-    if (logging_queue_exists)
-        xQueueSendToBack(creature_log_message_queue_handle, &lm, (TickType_t) 10);
-#endif
+        if (logging_queue_exists)
+            xQueueSendToBack(creature_log_message_queue_handle, &lm, (TickType_t) 10);
+    }
 }
 
 void debug(const char *message, ...) {
-#if LOGGING_LEVEL > 3
-    // Copy the arguments to a new va_list
-    va_list args;
-    va_start(args, message);
+    if (configured_logging_level > 3) {
+        // Copy the arguments to a new va_list
+        va_list args;
+        va_start(args, message);
 
-    struct LogMessage lm = createMessageObject(LOG_LEVEL_DEBUG, message, args);
-    va_end(args);
+        struct LogMessage lm = createMessageObject(LOG_LEVEL_DEBUG, message, args);
+        va_end(args);
 
-    if (logging_queue_exists)
-        xQueueSendToBack(creature_log_message_queue_handle, &lm, (TickType_t) 10);
-#endif
+        if (logging_queue_exists)
+            xQueueSendToBack(creature_log_message_queue_handle, &lm, (TickType_t) 10);
+    }
 }
 
 void info(const char *message, ...) {
-#if LOGGING_LEVEL > 2
-    // Copy the arguments to a new va_list
-    va_list args;
-    va_start(args, message);
+    if (configured_logging_level > 2) {
+        // Copy the arguments to a new va_list
+        va_list args;
+        va_start(args, message);
 
-    struct LogMessage lm = createMessageObject(LOG_LEVEL_INFO, message, args);
-    va_end(args);
+        struct LogMessage lm = createMessageObject(LOG_LEVEL_INFO, message, args);
+        va_end(args);
 
-    if (logging_queue_exists)
-        xQueueSendToBack(creature_log_message_queue_handle, &lm, (TickType_t) 10);
-#endif
+        if (logging_queue_exists)
+            xQueueSendToBack(creature_log_message_queue_handle, &lm, (TickType_t) 10);
+    }
 }
 
 void warning(const char *message, ...) {
-#if LOGGING_LEVEL > 1
-    // Copy the arguments to a new va_list
-    va_list args;
-    va_start(args, message);
+    if (configured_logging_level > 1) {
+        // Copy the arguments to a new va_list
+        va_list args;
+        va_start(args, message);
 
-    struct LogMessage lm = createMessageObject(LOG_LEVEL_WARNING, message, args);
-    va_end(args);
+        struct LogMessage lm = createMessageObject(LOG_LEVEL_WARNING, message, args);
+        va_end(args);
 
-    if (logging_queue_exists)
-        xQueueSendToBack(creature_log_message_queue_handle, &lm, (TickType_t) 10);
-#endif
+        if (logging_queue_exists)
+            xQueueSendToBack(creature_log_message_queue_handle, &lm, (TickType_t) 10);
+    }
 }
 
 void error(const char *message, ...) {
-#if LOGGING_LEVEL > 0
-    // Copy the arguments to a new va_list
-    va_list args;
-    va_start(args, message);
+    if (configured_logging_level > 0) {
+        // Copy the arguments to a new va_list
+        va_list args;
+        va_start(args, message);
 
-    struct LogMessage lm = createMessageObject(LOG_LEVEL_ERROR, message, args);
-    va_end(args);
+        struct LogMessage lm = createMessageObject(LOG_LEVEL_ERROR, message, args);
+        va_end(args);
 
-    if (logging_queue_exists)
-        xQueueSendToBack(creature_log_message_queue_handle, &lm, (TickType_t) 10);
-#endif
+        if (logging_queue_exists)
+            xQueueSendToBack(creature_log_message_queue_handle, &lm, (TickType_t) 10);
+    }
 }
 
 void __unused fatal(const char *message, ...) {
@@ -144,7 +163,7 @@ portTASK_FUNCTION(log_queue_reader_task, pvParameters) {
     memset(&levelBuffer, '\0', 4);
 
     // Output buffer for messages to live in
-    char* output_buffer = (char*)pvPortMalloc(sizeof(char) * LOGGING_MESSAGE_MAX_LENGTH + 1);
+    char *output_buffer = (char *) pvPortMalloc(sizeof(char) * LOGGING_MESSAGE_MAX_LENGTH + 1);
     memset(output_buffer, '\0', LOGGING_MESSAGE_MAX_LENGTH + 1);
 
     for (EVER) {

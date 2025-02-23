@@ -51,6 +51,8 @@ target_sources(joystick PUBLIC
         src/display/display_task.h
         src/display/display_wrapper.cpp
         src/display/display_wrapper.h
+        src/eeprom/eeprom.c
+        src/eeprom/eeprom.h
         src/joystick/adc.c
         src/joystick/adc.h
         src/joystick/responsive_analog_read_filter.c

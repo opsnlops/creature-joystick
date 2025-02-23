@@ -32,6 +32,7 @@ extern "C"
 {
 #endif
 
+void usb_descriptors_init(void);
 
 #define TUD_HID_REPORT_DESC_ACW_JOYSTICK(...) \
   HID_USAGE_PAGE ( HID_USAGE_PAGE_DESKTOP     )                 ,\

@@ -19,10 +19,12 @@
 // Our stuff
 #include "display/display_task.h"
 #include "display/display_wrapper.h"
+#include "eeprom/eeprom.h"
 #include "joystick/joystick.h"
 #include "lights/status_lights.h"
 #include "logging/logging.h"
 #include "usb/usb.h"
+#include "usb/usb_descriptors.h"
 
 joystick joystick1;
 pot pot1;
@@ -35,8 +37,16 @@ char* pico_board_id;
 TaskHandle_t analog_reader_task_handler;
 TaskHandle_t button_reader_task_handler;
 
-void get_chip_id();
+// MARK: - USB Descriptors
+uint16_t usb_pid;
+uint16_t usb_vid;
+uint16_t usb_version;
+char usb_serial[16] = {0};
+char usb_product[16] = {0};
+char usb_manufacturer[32] = {0};
 
+// What level of logging we want (this is overridden from the EEPROM if it exists)
+uint8_t configured_logging_level = LOG_LEVEL_DEBUG;
 
 /**
  * According to the docs, the USB tasks should only be started after the FreeRTOS
@@ -55,12 +65,13 @@ int main(void)
     // Tell picotool all about us
     bi_decl(bi_program_name("joystick"));
     bi_decl(bi_program_description("April's Creature Workshop Joystick"));
-    bi_decl(bi_program_version_string("1.0"));
+    bi_decl(bi_program_version_string("3.0"));
     bi_decl(bi_program_feature("FreeRTOS version " tskKERNEL_VERSION_NUMBER));
     bi_decl(bi_program_url("https://creature.engineering/hardware/creature-joystick/"));
     bi_decl(bi_2pins_with_func(0, 1, GPIO_FUNC_UART));
     bi_decl(bi_4pins_with_func(2, 3, 4, 5, GPIO_FUNC_SPI));
     bi_decl(bi_2pins_with_func(14, 15, GPIO_FUNC_I2C));
+    bi_decl(bi_2pins_with_func(16, 17, GPIO_FUNC_I2C));
     bi_decl(bi_1pin_with_name(STATUS_LIGHTS_GPIO, "Status Lights"));
     bi_decl(bi_1pin_with_name(AXIS_LIGHTS_GPIO, "Axis Lights"));
     bi_decl(bi_1pin_with_name(BUTTON_LIGHTS_GPIO, "Button Lights"));
@@ -77,8 +88,10 @@ int main(void)
     logger_init();
     debug("Logging running!");
 
-    // Look up our chip ID
-    get_chip_id();
+    // Read the EEPROM before setting up the USB subsystem
+    eeprom_setup_i2c();
+    read_eeprom_and_configure();
+    usb_descriptors_init();
 
     board_init();
     init_reader();
@@ -130,18 +143,6 @@ int main(void)
                 &startup_task_handle);
 
     vTaskStartScheduler();
-
-}
-
-void get_chip_id() {
-
-    pico_unique_board_id_t board_id;
-    pico_get_unique_board_id(&board_id);
-    pico_board_id = (char*)pvPortMalloc(sizeof(char) * (2 * PICO_UNIQUE_BOARD_ID_SIZE_BYTES + 1));
-    memset(pico_board_id, '\0', 2 * PICO_UNIQUE_BOARD_ID_SIZE_BYTES + 1);
-    pico_get_unique_board_id_string(pico_board_id, 2 * PICO_UNIQUE_BOARD_ID_SIZE_BYTES + 1);
-
-    debug("board id: %s", pico_board_id);
 
 }
 

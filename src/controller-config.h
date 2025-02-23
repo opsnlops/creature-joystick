@@ -48,7 +48,6 @@
 /*
  * Logging Config
  */
-#define LOGGING_LEVEL               LOG_LEVEL_INFO
 #define LOGGING_QUEUE_LENGTH        80
 #define LOGGING_MESSAGE_MAX_LENGTH  256
 

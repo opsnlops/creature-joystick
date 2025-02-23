@@ -33,6 +33,7 @@ TaskHandle_t adc_debugger_task_handler;
 portTASK_FUNCTION_PROTO(adc_debugger_task, pvParameters);
 void get_chip_id();
 
+uint8_t configured_logging_level = LOG_LEVEL_DEBUG;
 
 /**
  * According to the docs, the USB tasks should only be started after the FreeRTOS
