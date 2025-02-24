@@ -17,6 +17,12 @@ jobs:
     # cross-platform coverage.
     # See: https://docs.github.com/en/free-pro-team@latest/actions/learn-github-actions/managing-complex-workflows#using-a-build-matrix
     runs-on: buildjet-4vcpu-ubuntu-2204
+    strategy:
+      fail-fast: false
+      matrix:
+        platform:
+          - rp2040
+          - rp2350
 
     steps:
       - uses: actions/checkout@v3
@@ -27,19 +33,18 @@ jobs:
         run: sudo apt update && sudo apt install gcc-arm-none-eabi libnewlib-arm-none-eabi build-essential libzopfli-dev
 
       - name: Clone pico-sdk
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           repository: raspberrypi/pico-sdk
-          ref: 1.5.1
+          ref: 2.1.1
           path: pico-sdk
           clean: false
           submodules: 'true'
 
       - name: Clone FreeRTOS-Kernel
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
-          repository: FreeRTOS/FreeRTOS-Kernel
-          ref: V10.6.2
+          repository: raspberrypi/FreeRTOS-Kernel
           path: FreeRTOS-Kernel
           clean: false
           submodules: 'true'
@@ -57,7 +62,7 @@ jobs:
         # Note the current convention is to use the -S and -B options here to specify source
         # and build directories, but this is only available with CMake 3.13 and higher.
         # The CMake binaries on the Github Actions machines are (as of this writing) 3.12
-        run: PICO_SDK_PATH=$GITHUB_WORKSPACE/pico-sdk FREERTOS_KERNEL_PATH=$GITHUB_WORKSPACE/FreeRTOS-Kernel cmake $GITHUB_WORKSPACE
+        run: PICO_PLATFORM=${{ matrix.platform }} PICO_SDK_PATH=$GITHUB_WORKSPACE/pico-sdk FREERTOS_KERNEL_PATH=$GITHUB_WORKSPACE/FreeRTOS-Kernel cmake $GITHUB_WORKSPACE
 
       - uses: ammaraskar/gcc-problem-matcher@master
 
@@ -70,5 +75,5 @@ jobs:
       - name: Save artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: creature-joystick
+          name: creature-joystick-${{ matrix.platform }}
           path: ${{github.workspace}}/build/*.uf2
