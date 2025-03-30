@@ -94,6 +94,14 @@ int main(void)
     usb_descriptors_init();
 
     board_init();
+
+    // TinyUSB board init callback after init
+    if (board_init_after_tusb) {
+        debug("board_init_after_tusb");
+        board_init_after_tusb();
+    }
+
+
     init_reader();
 
     // Set up the display

@@ -202,7 +202,7 @@ static void send_hid_report()
 #ifdef SUSPEND_READER_WHEN_NO_USB
 
     // Skip if the HID isn't ready
-    if ( !tud_hid_n_ready(JOYSTICK)) {
+    if ( !tud_hid_n_ready(JOYSTICK) ) {
 
         // Before we go, if the reader is running, stop it.
         if( eTaskGetState(analog_reader_task_handler) != eSuspended ) {
@@ -272,4 +272,33 @@ uint16_t tud_hid_get_report_cb(uint8_t instance, uint8_t report_id, hid_report_t
 void tud_hid_set_report_cb(uint8_t instance, uint8_t report_id, hid_report_type_t report_type, uint8_t const* buffer, uint16_t bufsize)
 {
     info("got report: %d on instance %d, size: %d", report_type, instance, bufsize);
+}
+
+
+// callback when data is received on a CDC interface
+//  This is taken from the Pi demo, none of this is real to the joystick
+void tud_cdc_rx_cb(uint8_t itf)
+{
+    // allocate buffer for the data in the stack
+    uint8_t buf[CFG_TUD_CDC_RX_BUFSIZE];
+
+    debug("RX CDC %d", itf);
+
+    // read the available data
+    // | IMPORTANT: also do this for CDC0 because otherwise
+    // | you won't be able to print anymore to CDC0
+    // | next time this function is called
+    uint32_t count = tud_cdc_n_read(itf, buf, sizeof(buf));
+
+    // check if the data was received on the second cdc interface
+    if (itf == 1) {
+        // process the received data
+        buf[count] = 0; // null-terminate the string
+        // now echo data back to the console on CDC 0
+        debug("Received on CDC 1: %s", buf);
+
+        // and echo back OK on CDC 1
+        tud_cdc_n_write(itf, (uint8_t const *) "OK\r\n", 4);
+        tud_cdc_n_write_flush(itf);
+    }
 }

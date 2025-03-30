@@ -1,9 +1,12 @@
+
+#include "pico/unique_id.h"
+
+#include "logging/logging.h"
+
 #include "controller-config.h"
 #include "tusb.h"
 #include "usb_descriptors.h"
-#include "pico/stdlib.h"
-#include "pico/unique_id.h"
-#include "logging/logging.h"
+
 
 // Global variables loaded from EEPROM (set these values before USB init)
 extern uint16_t usb_vid;            // e.g. 0x2E8A
@@ -52,7 +55,7 @@ void usb_descriptors_init(void) {
 // Device Descriptor Callback
 //--------------------------------------------------------------------+
 uint8_t const *tud_descriptor_device_cb(void) {
-    debug("tud_descriptor_device_cb");
+    debug("tud_descriptor_device_cb() called");
     return (uint8_t const *)&usb_device_descriptor;
 }
 
@@ -73,22 +76,36 @@ uint8_t const *tud_hid_descriptor_report_cb(uint8_t interface) {
 //--------------------------------------------------------------------+
 enum {
     ITF_NUM_HID = 0,
-    ITF_NUM_CDC,
-    ITF_NUM_CDC_DATA,
+    ITF_NUM_CDC_0,
+    ITF_NUM_CDC_0_DATA,
+    ITF_NUM_CDC_1,
+    ITF_NUM_CDC_1_DATA,
     ITF_NUM_TOTAL
 };
 
 #define CONFIG_TOTAL_LEN  (TUD_CONFIG_DESC_LEN + TUD_HID_DESC_LEN + (CFG_TUD_CDC * TUD_CDC_DESC_LEN))
-#define EPNUM_HID_LEFT      0x81
-#define EPNUM_CDC_NOTIF     0x83
-#define EPNUM_CDC_OUT       0x02
-#define EPNUM_CDC_IN        0x84
+#define EPNUM_HID             0x81
+#define EPNUM_CDC_0_NOTIF     0x83
+#define EPNUM_CDC_0_OUT       0x02
+#define EPNUM_CDC_0_IN        0x84
+
+#define EPNUM_CDC_1_NOTIF     0x85
+#define EPNUM_CDC_1_OUT       0x03
+#define EPNUM_CDC_1_IN        0x86
+
+
 
 uint8_t const desc_configuration[] = {
         TUD_CONFIG_DESCRIPTOR(1, ITF_NUM_TOTAL, 0, CONFIG_TOTAL_LEN, 0x00, 200),
+
         TUD_HID_DESCRIPTOR(ITF_NUM_HID, 4, HID_ITF_PROTOCOL_NONE, sizeof(desc_hid_report),
-                           EPNUM_HID_LEFT, CFG_TUD_HID_EP_BUFSIZE, POLLING_INTERVAL),
-        TUD_CDC_DESCRIPTOR(ITF_NUM_CDC, 5, EPNUM_CDC_NOTIF, 8, EPNUM_CDC_OUT, EPNUM_CDC_IN, 64)
+                           EPNUM_HID, CFG_TUD_HID_EP_BUFSIZE, POLLING_INTERVAL),
+
+        // CDC 0: Used for main communication
+        TUD_CDC_DESCRIPTOR(ITF_NUM_CDC_0, 5, EPNUM_CDC_0_NOTIF, 8, EPNUM_CDC_0_OUT, EPNUM_CDC_0_IN, 64),
+
+        // CDC 1: Used for debugging
+        TUD_CDC_DESCRIPTOR(ITF_NUM_CDC_1, 5, EPNUM_CDC_1_NOTIF, 8, EPNUM_CDC_1_OUT, EPNUM_CDC_1_IN, 64)
 };
 
 uint8_t const *tud_descriptor_configuration_cb(uint8_t index) {
@@ -105,8 +122,10 @@ char const *static_string_desc_arr[] = {
         "Default Manufacturer",        // 1: Fallback Manufacturer
         "Default Product",             // 2: Fallback Product
         "Default Serial",              // 3: Fallback Serial (should normally use chip ID)
-        "Knobs and Buttons",           // 4: Description
-        "Debugger"                     // 5: Description
+        "Knobs and Buttons",           // 4: HID Device Description
+        "Debugger",                    // 5: CDC 0 Description
+        "Console",                     // 6: CDC 1 Description
+        "RPIReset"                     // 7: RPIReset Description
 };
 
 uint16_t const *tud_descriptor_string_cb(uint8_t index, uint16_t langid) {
@@ -115,25 +134,33 @@ uint16_t const *tud_descriptor_string_cb(uint8_t index, uint16_t langid) {
     uint8_t chr_count = 0;
     const char *str = NULL;
 
-    if (index == 0) {
-        // Language descriptor
-        memcpy(&_desc_str[1], static_string_desc_arr[0], 2);
-        chr_count = 1;
-    } else if (index == USB_MANUFACTURER_INDEX) {
-        // Use EEPROM value if available, otherwise fallback
-        str = (usb_manufacturer[0] != '\0') ? usb_manufacturer : static_string_desc_arr[1];
-    } else if (index == USB_PRODUCT_INDEX) {
-        str = (usb_product[0] != '\0') ? usb_product : static_string_desc_arr[2];
-    } else if (index == USB_SERIAL_NUMBER_INDEX) {
-        str = (usb_serial[0] != '\0') ? usb_serial : static_string_desc_arr[3];
-    } else {
-        // Use static strings for other indices
-        if (index < sizeof(static_string_desc_arr) / sizeof(static_string_desc_arr[0])) {
-            str = static_string_desc_arr[index];
-        } else {
-            return NULL;
-        }
+    switch(index) {
+        case 0:
+            // Language descriptor
+            memcpy(&_desc_str[1], static_string_desc_arr[0], 2);
+            chr_count = 1;
+            break;
+        case USB_MANUFACTURER_INDEX:
+            // Use EEPROM value if available, otherwise fallback
+            str = (usb_manufacturer[0] != '\0') ? usb_manufacturer : static_string_desc_arr[1];
+            break;
+        case USB_PRODUCT_INDEX:
+            str = (usb_product[0] != '\0') ? usb_product : static_string_desc_arr[2];
+            break;
+        case USB_SERIAL_NUMBER_INDEX:
+            str = (usb_serial[0] != '\0') ? usb_serial : static_string_desc_arr[3];
+            break;
+        default:
+            // Use static strings for other indices
+            if (index < sizeof(static_string_desc_arr) / sizeof(static_string_desc_arr[0])) {
+                str = static_string_desc_arr[index];
+            } else {
+                return NULL;
+            }
+            break;
     }
+
+    debug("tud_descriptor_string_cb: %d, %s", index, str);
 
     if (str) {
         chr_count = strlen(str);

@@ -84,15 +84,15 @@ uint16_t adc_read(uint8_t adc_channel, uint8_t adc_num_cs_pin) {
     uint16_t adcResult = ((rxBuffer[1] & 0x0F) << 8) | rxBuffer[2];
 
     // Debug print
-    /*
-    if (adc_channel == 1)
+#if DEBUG_ADC == 1
+    if (adc_channel == 2)
         debug("ADC Channel: %d, Raw SPI Data: %s %s %s, ADC Result: %u",
                adc_channel,
                toBinaryString(rxBuffer[0]),
                toBinaryString(rxBuffer[1]),
                toBinaryString(rxBuffer[2]),
                adcResult);
-    */
+#endif
 
     return adcResult;
 }

@@ -33,6 +33,7 @@
 #define ANALOG_READ_FILTER_SNAP_VALUE 0.2
 
 
+#define DEBUG_ADC 0
 
 
 /*
