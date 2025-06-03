@@ -86,7 +86,6 @@ void usb_descriptors_init(void);
 
 enum {
     REPORT_ID_GAMEPAD = 1,
-    REPORT_ID_CDC,
     REPORT_ID_COUNT
 };
 

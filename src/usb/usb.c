@@ -28,9 +28,6 @@ extern pot pot2;
 
 extern button_t button_state_mask;
 
-extern TaskHandle_t analog_reader_task_handler;
-extern TaskHandle_t button_reader_task_handler;
-
 enum {
     JOYSTICK = 0
 };
@@ -197,31 +194,6 @@ static void send_hid_report()
 
     // Skip if we're not ready yet
     if ( !tud_hid_ready() ) return;
-
-
-#ifdef SUSPEND_READER_WHEN_NO_USB
-
-    // Skip if the HID isn't ready
-    if ( !tud_hid_n_ready(JOYSTICK) ) {
-
-        // Before we go, if the reader is running, stop it.
-        if( eTaskGetState(analog_reader_task_handler) != eSuspended ) {
-            debug("suspending reader task");
-            vTaskSuspend(analog_reader_task_handler);
-            vTaskSuspend(button_reader_task_handler);
-        }
-
-        return;
-    }
-
-    // Make sure the reader is running
-    if(eTaskGetState(analog_reader_task_handler) == eSuspended ) {
-        debug("resuming joystick reader");
-        vTaskResume(analog_reader_task_handler);
-        vTaskResume(button_reader_task_handler);
-    }
-
-#endif
 
     verbose("send_hid_report");
 

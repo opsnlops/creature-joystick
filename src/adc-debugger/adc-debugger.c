@@ -6,6 +6,7 @@
 // FreeRTOS
 #include <FreeRTOS.h>
 #include <task.h>
+#include <timers.h>
 
 // TinyUSB
 #include "bsp/board.h"
@@ -25,8 +26,8 @@ pot pot1;
 
 char* pico_board_id;
 
-TaskHandle_t analog_reader_task_handler;
-TaskHandle_t button_reader_task_handler;
+TimerHandle_t analog_reader_timer_handler;
+TimerHandle_t button_reader_timer_handler;
 
 TaskHandle_t adc_debugger_task_handler;
 
@@ -71,8 +72,8 @@ int main(void)
 
 
     // And go!
-    analog_reader_task_handler = start_analog_reader_task();
-    button_reader_task_handler = start_button_reader_task();
+    analog_reader_timer_handler = start_analog_reader_timer();
+    button_reader_timer_handler = start_button_reader_timer();
 
 
     // Queue up the startup task for right after the scheduler starts

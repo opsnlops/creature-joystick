@@ -14,12 +14,12 @@
 // Pico SDK
 #include "pico/binary_info.h"
 #include "pico/stdlib.h"
-#include "pico/unique_id.h"
 
 // Our stuff
 #include "display/display_task.h"
 #include "display/display_wrapper.h"
 #include "eeprom/eeprom.h"
+#include "joystick/adc.h"
 #include "joystick/joystick.h"
 #include "lights/status_lights.h"
 #include "logging/logging.h"
@@ -32,10 +32,8 @@ pot pot1;
 joystick joystick2;
 pot pot2;
 
-char* pico_board_id;
-
-TaskHandle_t analog_reader_task_handler;
-TaskHandle_t button_reader_task_handler;
+TimerHandle_t analog_reader_timer_handler;
+TimerHandle_t button_reader_timer_handler;
 
 // MARK: - USB Descriptors
 uint16_t usb_pid;
@@ -110,8 +108,8 @@ int main(void)
 
     // Left Half
     joystick1 = create_3axis_joystick(0, 1, 2);
-    joystick1.y.inverted = true;
-    pot1 = create_pot(3);
+    //joystick1.y.inverted = true;
+    pot1 = create_pot(6);
     pot1.z.inverted = true;
 
 
@@ -122,8 +120,7 @@ int main(void)
 
 
     // Right Half
-    joystick2 = create_3axis_joystick(4, 5, 6);
-    joystick2.z.inverted = true;
+    joystick2 = create_3axis_joystick(3, 4, 5);
     pot2 = create_pot(7);
     pot2.z.inverted = true;
 
@@ -132,9 +129,11 @@ int main(void)
     register_axis(&joystick2.z);
     register_axis(&pot2.z);
 
+    joystick_adc_init();
+
     // And go!
-    analog_reader_task_handler = start_analog_reader_task();
-    button_reader_task_handler = start_button_reader_task();
+    analog_reader_timer_handler = start_analog_reader_timer();
+    button_reader_timer_handler = start_button_reader_timer();
 
     // Start up the status lights
     status_lights_init();
@@ -167,7 +166,6 @@ portTASK_FUNCTION(startup_task, pvParameters) {
 
     usb_init();
     usb_start();
-
 
     // Bye!
     vTaskDelete(NULL);

@@ -4,6 +4,8 @@
 #include <sys/cdefs.h>
 #include <limits.h>
 
+#include "hardware/gpio.h"
+
 #include <FreeRTOS.h>
 #include <task.h>
 #include <timers.h>

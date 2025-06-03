@@ -6,21 +6,12 @@ extern "C"
 {
 #endif
 
-#include <stdio.h>
-
 #include <FreeRTOS.h>
-#include <task.h>
+#include <timers.h>
 
 #include "controller-config.h"
 
-#include "pico/stdlib.h"
-#include "hardware/gpio.h"
-
 #include "joystick/responsive_analog_read_filter.h"
-
-// Reader task for this joystick
-portTASK_FUNCTION_PROTO(analog_reader_task, pvParameters);
-portTASK_FUNCTION_PROTO(button_reader_task, pvParameters);
 
 typedef struct {
     uint8_t adc_channel;
@@ -55,8 +46,12 @@ void setButton(button_t *buttonState, uint8_t button);
 void clearButton(button_t *buttonState, uint8_t button);
 void toggleButton(button_t *buttonState, uint8_t button);
 
-TaskHandle_t start_analog_reader_task();
-TaskHandle_t start_button_reader_task();
+TimerHandle_t start_analog_reader_timer();
+TimerHandle_t start_button_reader_timer();
+
+void analog_reader_task();
+void button_reader_task();
+
 
 #ifdef __cplusplus
 }

@@ -2,6 +2,13 @@
 
 #include <stdio.h>
 
+#include "hardware/gpio.h"
+#include "pico/time.h"
+
+// FreeRTOS
+#include <FreeRTOS.h>
+#include <timers.h>
+
 #include "controller-config.h"
 
 #include "joystick/adc.h"
@@ -204,105 +211,57 @@ void toggleButton(button_t *buttonState, uint8_t button) {
     }
 }
 
-
-TaskHandle_t start_analog_reader_task()
+TimerHandle_t start_analog_reader_timer()
 {
-    TaskHandle_t reader_handle;
-
-    xTaskCreate(analog_reader_task,
-                "analog_reader_task",
-                configMINIMAL_STACK_SIZE + 512,
-                (void*)0,
-                1,
-                &reader_handle);
-
-#ifdef SUSPEND_READER_WHEN_NO_USB
-    // Start off suspended! Will be started when the device is
-    // mounted on the host
-    vTaskSuspend(reader_handle);
-#endif
+    TimerHandle_t reader_handle = xTimerCreate(
+        "analog_reader_task", // Timer name
+        pdMS_TO_TICKS(POLLING_INTERVAL), // Every POLLING_INTERVAL
+        pdTRUE, // Auto-reload
+        (void *) 0, // Timer ID (not used here)
+        analog_reader_task // Callback function
+    );
+    xTimerStart(reader_handle, 0);
 
     return reader_handle;
 }
 
-TaskHandle_t start_button_reader_task()
+TimerHandle_t start_button_reader_timer()
 {
-    TaskHandle_t reader_handle;
-
-    xTaskCreate(button_reader_task,
-                "button_reader_task",
-                configMINIMAL_STACK_SIZE + 512,
-                (void*)0,
-                1,
-                &reader_handle);
-
-#ifdef SUSPEND_READER_WHEN_NO_USB
-    // Start off suspended! Will be started when the device is
-    // mounted on the host
-    vTaskSuspend(reader_handle);
-#endif
+    TimerHandle_t reader_handle = xTimerCreate(
+        "button_reader_task", // Timer name
+        pdMS_TO_TICKS(POLLING_INTERVAL), // Every POLLING_INTERVAL
+        pdTRUE, // Auto-reload
+        (void *) 0, // Timer ID (not used here)
+        button_reader_task // Callback function
+    );
+    xTimerStart(reader_handle, 0);
 
     return reader_handle;
 }
 
 
-portTASK_FUNCTION(analog_reader_task, pvParameters) {
-
-    joystick_adc_init();
-
-#pragma clang diagnostic push
-#pragma ide diagnostic ignored "EndlessLoop"
-
-    for(EVER) {
-
-        for(int i = 0; i < number_of_axen; i++) {
-
-            axis* a = axis_collection[i];
-            read_value(a);
-            verbose("read value %d (%d) from adc_channel %d", a->filtered_value, a->raw_value,  a->adc_channel);
-        }
-
-        vTaskDelay(pdMS_TO_TICKS(POLLING_INTERVAL));
-
+void analog_reader_task() {
+    for(int i = 0; i < number_of_axen; i++) {
+        axis* a = axis_collection[i];
+        read_value(a);
+        verbose("read value %d (%d) from adc_channel %d", a->filtered_value, a->raw_value,  a->adc_channel);
     }
-
-#pragma clang diagnostic pop
-
 }
 
+void button_reader_task() {
+    for(uint8_t i = 0; i < MAX_NUMBER_OF_BUTTONS; i++) {
 
-portTASK_FUNCTION(button_reader_task, pvParameters) {
+        // Set the MUX mask for this button
+        gpio_put_masked(BUTTON_GPIO_MASK, BUTTON_MUX_MASKS[i]);
 
+        // This might not be needed. The MUX's datasheet says it needs 200ns.
+        sleep_us(1);
 
-    info("starting the button reader task");
-
-#pragma clang diagnostic push
-#pragma ide diagnostic ignored "EndlessLoop"
-
-    for(EVER) {
-
-        // Walk all of the buttons and update the button state var
-        for(uint8_t i = 0; i < MAX_NUMBER_OF_BUTTONS; i++) {
-
-            // Set the MUX mask for this button
-            gpio_put_masked(BUTTON_GPIO_MASK, BUTTON_MUX_MASKS[i]);
-
-            // This might not be needed. The MUX's datasheet says it needs 200ns.
-            sleep_us(1);
-
-            if(!gpio_get(BUTTON_IN)) {
-                setButton(&button_state_mask, i);
-            }
-            else {
-                clearButton(&button_state_mask, i);
-            }
+        if(!gpio_get(BUTTON_IN)) {
+            setButton(&button_state_mask, i);
         }
-
-
-        vTaskDelay(pdMS_TO_TICKS(POLLING_INTERVAL));
-
+        else {
+            clearButton(&button_state_mask, i);
+        }
     }
-
-#pragma clang diagnostic pop
-
 }

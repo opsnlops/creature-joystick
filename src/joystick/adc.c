@@ -3,7 +3,13 @@
 #include "pico/stdlib.h"
 #include "hardware/spi.h"
 
+// FreeRTOS
+#include <FreeRTOS.h>
+#include <task.h>
+
 #include "adc.h"
+
+#include <sys/unistd.h>
 
 #include "logging/logging.h"
 
@@ -31,22 +37,21 @@ void joystick_adc_init() {
 
     spi_init(spi0, 1000 * 750);
     spi_set_format(spi0, 8, SPI_CPOL_0, SPI_CPHA_0, SPI_MSB_FIRST);
-    gpio_set_function(2, GPIO_FUNC_SPI);
-    gpio_set_function(3, GPIO_FUNC_SPI);
-    gpio_set_function(4, GPIO_FUNC_SPI);
 
+    // Configure SPI pins
+    gpio_set_function(2, GPIO_FUNC_SPI);  // SCK
+    gpio_set_function(3, GPIO_FUNC_SPI);  // MOSI (SDI for MCP3208)
+    gpio_set_function(4, GPIO_FUNC_SPI);  // MISO (SDO for MCP3208)
 
-    // Chip Select (ADC0)
+    // Configure chip select with strong pull-up
     gpio_init(ADC0_CS_PIN);
     gpio_set_dir(ADC0_CS_PIN, GPIO_OUT);
     gpio_put(ADC0_CS_PIN, 1);
 
-    // Chip Select (ADC1)
+    // Configure chip select for second ADC if used
     gpio_init(ADC1_CS_PIN);
     gpio_set_dir(ADC1_CS_PIN, GPIO_OUT);
-    gpio_put(ADC1_CS_PIN, 1);
-
-    vTaskDelay(pdMS_TO_TICKS(5));
+    gpio_put(ADC1_CS_PIN, 1);      // Ensure CS is high initially
 
     info("SPI set up for spi0");
 }
@@ -75,9 +80,13 @@ uint16_t adc_read(uint8_t adc_channel, uint8_t adc_num_cs_pin) {
     uint8_t txBuffer[3] = {cmd0, cmd1, 0x00}; // The last byte doesn't matter, it's just to clock out the ADC data
     uint8_t rxBuffer[3] = {0}; // To store the response
 
+    uint32_t mask = taskENTER_CRITICAL_FROM_ISR();
+
     gpio_put(adc_num_cs_pin, 0); // Activate CS to start the transaction
     spi_write_read_blocking(spi0, txBuffer, rxBuffer, 3); // Send the command and read the response
     gpio_put(adc_num_cs_pin, 1); // Deactivate CS to end the transaction
+
+    taskEXIT_CRITICAL_FROM_ISR(mask);
 
     // Now, interpret the response:
     // Skip the first 6 bits of rxBuffer[1], then take the next 10 bits as the ADC value

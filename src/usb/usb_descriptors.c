@@ -121,11 +121,10 @@ char const *static_string_desc_arr[] = {
         (const char[]) {0x09, 0x04},   // 0: Supported language (English - 0x0409)
         "Default Manufacturer",        // 1: Fallback Manufacturer
         "Default Product",             // 2: Fallback Product
-        "Default Serial",              // 3: Fallback Serial (should normally use chip ID)
+        "Default Serial",              // 3: Fallback Serial
         "Knobs and Buttons",           // 4: HID Device Description
         "Debugger",                    // 5: CDC 0 Description
-        "Console",                     // 6: CDC 1 Description
-        "RPIReset"                     // 7: RPIReset Description
+        "Console"                      // 6: CDC 1 Description
 };
 
 uint16_t const *tud_descriptor_string_cb(uint8_t index, uint16_t langid) {
